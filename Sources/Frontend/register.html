@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru" x-data="registerForm()">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoMT — Регистрация</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white p-6 rounded-xl shadow-md w-full max-w-sm">
+    <h2 class="text-2xl font-bold mb-4 text-center">Регистрация</h2>
+
+    <form @submit.prevent="register">
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Имя пользователя</label>
+        <input type="text" class="w-full border rounded p-2" x-model="username" required>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Пароль</label>
+        <input type="password" class="w-full border rounded p-2" x-model="password" required>
+      </div>
+      <template x-if="error">
+        <div class="mb-4 text-red-500 text-sm" x-text="error"></div>
+      </template>
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700">
+        Зарегистрироваться
+      </button>
+      <p class="text-sm mt-4 text-center">
+        Уже есть аккаунт? <a href="login.html" class="text-blue-600 hover:underline">Войти</a>
+      </p>
+    </form>
+  </div>
+
+  <script>
+    function registerForm() {
+      return {
+        username: '',
+        password: '',
+        error: '',
+        async register() {
+          try {
+            const res = await fetch('http://localhost:5291/api/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username: this.username, password: this.password })
+            });
+
+            if (!res.ok) {
+              const data = await res.json();
+              this.error = data?.message || 'Ошибка регистрации';
+              return;
+            }
+
+            // Успешно — редирект на логин
+            window.location.href = 'login.html';
+          } catch (e) {
+            this.error = 'Ошибка подключения к серверу';
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>

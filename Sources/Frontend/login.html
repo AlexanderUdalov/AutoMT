@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru" x-data="loginForm()">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoMT — Вход</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-6 rounded-xl shadow-md w-full max-w-sm">
+        <h2 class="text-2xl font-bold mb-4 text-center">Вход в AutoMT</h2>
+
+        <form @submit.prevent="login">
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Имя пользователя</label>
+                <input type="text" class="w-full border rounded p-2" x-model="username" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Пароль</label>
+                <input type="password" class="w-full border rounded p-2" x-model="password" required>
+            </div>
+            <template x-if="error">
+                <div class="mb-4 text-red-500 text-sm" x-text="error"></div>
+            </template>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
+                Войти
+            </button>
+        </form>
+        <p class="text-sm mt-4 text-center">
+            Нет аккаунта? <a href="register.html" class="text-blue-600 hover:underline">Зарегистрируйтесь</a>
+        </p>
+    </div>
+
+    <script>
+        function loginForm() {
+            return {
+                username: '',
+                password: '',
+                error: '',
+                async login() {
+                    try {
+                        const res = await fetch('http://localhost:5291/api/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: this.username, password: this.password })
+                        });
+
+                        if (!res.ok) {
+                            this.error = 'Неверный логин или пароль';
+                            return;
+                        }
+
+                        const data = await res.json();
+                        localStorage.setItem('token', data.token);
+                        window.location.href = 'garage.html';
+                    } catch (e) {
+                        this.error = 'Ошибка подключения к серверу';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

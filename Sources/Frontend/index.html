@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru" x-data>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoMT — Календарь ТО</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+
+  <div class="w-full max-w-2xl bg-white shadow-md rounded-xl p-6">
+    <h1 class="text-2xl font-bold mb-4">Добро пожаловать в AutoMT</h1>
+    
+    <div x-data="{
+        token: localStorage.getItem('token'),
+        vehicles: [],
+        async fetchVehicles() {
+            const res = await fetch('http://localhost:5291/api/vehicles', {
+              headers: { 'Authorization': 'Bearer ' + this.token }
+            });
+            this.vehicles = await res.json();
+        }
+    }" x-init="fetchVehicles">
+
+      <template x-if="vehicles.length > 0">
+        <ul class="space-y-2">
+          <template x-for="v in vehicles" :key="v.id">
+            <li class="border p-4 rounded shadow-sm">
+              <strong x-text="v.make + ' ' + v.model"></strong><br>
+              Год: <span x-text="v.year"></span> |
+              Пробег: <span x-text="v.mileage + ' км'"></span>
+            </li>
+          </template>
+        </ul>
+      </template>
+
+      <template x-if="vehicles.length === 0">
+        <p class="text-gray-500">Машины не найдены. Добавьте первую в <a href="garage.html" class="text-blue-500 underline">гараже</a>.</p>
+      </template>
+    </div>
+  </div>
+</body>
+</html>

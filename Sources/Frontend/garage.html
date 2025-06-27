@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru" x-data="garageApp()">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoMT — Гараж</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <script>
+  if (!localStorage.getItem('token')) {
+    window.location.href = 'login.html';
+  }
+</script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+  <div class="max-w-2xl mx-auto bg-white shadow p-6 rounded-xl">
+    <h1 class="text-2xl font-bold mb-4">Ваш гараж</h1>
+
+    <div class="mb-6" x-show="vehicles.length > 0">
+      <template x-for="v in vehicles" :key="v.id">
+        <div class="border p-4 mb-2 rounded">
+          <strong x-text="v.make + ' ' + v.model"></strong>
+          <p class="text-sm text-gray-500">VIN: <span x-text="v.vin"></span>, Год: <span x-text="v.year"></span>, Пробег: <span x-text="v.mileage + ' км'"></span></p>
+        </div>
+      </template>
+    </div>
+
+    <h2 class="text-xl font-semibold mb-2">Добавить автомобиль</h2>
+    <form @submit.prevent="addVehicle">
+      <input type="text" placeholder="VIN" class="border rounded p-2 w-full mb-2" x-model="newVehicle.vin" required>
+      <input type="text" placeholder="Марка" class="border rounded p-2 w-full mb-2" x-model="newVehicle.make" required>
+      <input type="text" placeholder="Модель" class="border rounded p-2 w-full mb-2" x-model="newVehicle.model" required>
+      <input type="number" placeholder="Год выпуска" class="border rounded p-2 w-full mb-2" x-model="newVehicle.year" required>
+      <input type="number" placeholder="Пробег" class="border rounded p-2 w-full mb-4" x-model="newVehicle.mileage" required>
+      <button class="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700" type="submit">Сохранить</button>
+    </form>
+  </div>
+
+  <script>
+    function garageApp() {
+      return {
+        vehicles: [],
+        newVehicle: {
+          vin: '', make: '', model: '', year: '', mileage: ''
+        },
+        async fetchVehicles() {
+          const res = await fetch('http://localhost:5291/api/vehicles', {
+            headers: {
+              'Authorization': 'Bearer ' + localStorage.getItem('token')
+            }
+          });
+          if (res.ok) {
+            this.vehicles = await res.json();
+          }
+        },
+        async addVehicle() {
+          const res = await fetch('http://localhost:5291/api/vehicles', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            body: JSON.stringify(this.newVehicle)
+          });
+          if (res.ok) {
+            this.newVehicle = { vin: '', make: '', model: '', year: '', mileage: '' };
+            await this.fetchVehicles();
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>
