@@ -1,44 +1,179 @@
 <!DOCTYPE html>
 <html lang="ru" x-data>
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AutoMT — Календарь ТО</title>
+  <title>AutoMT — Главная ТО</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
   <script src="https://unpkg.com/alpinejs" defer></script>
 </head>
+
+
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+  <nav class="bg-white fixed w-full z-20 top-0 start-0 border-b border-gray-200">
+    <div class="max-w-screen-xl flex flex-wrap items-center justify-between md:justify-center mx-auto p-4 relative">
+      <img src="./images/logo.png" class="h-14 md:absolute md:left-4" alt="Logo">
 
-  <div class="w-full max-w-2xl bg-white shadow-md rounded-xl p-6">
-    <h1 class="text-2xl font-bold mb-4">Добро пожаловать в AutoMT</h1>
-    
-    <div x-data="{
-        token: localStorage.getItem('token'),
-        vehicles: [],
-        async fetchVehicles() {
-            const res = await fetch('http://localhost:5291/api/vehicles', {
-              headers: { 'Authorization': 'Bearer ' + this.token }
-            });
-            this.vehicles = await res.json();
-        }
-    }" x-init="fetchVehicles">
-
-      <template x-if="vehicles.length > 0">
-        <ul class="space-y-2">
-          <template x-for="v in vehicles" :key="v.id">
-            <li class="border p-4 rounded shadow-sm">
-              <strong x-text="v.make + ' ' + v.model"></strong><br>
-              Год: <span x-text="v.year"></span> |
-              Пробег: <span x-text="v.mileage + ' км'"></span>
-            </li>
-          </template>
+      <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+        <button data-collapse-toggle="navbar-sticky" type="button"
+          class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          aria-controls="navbar-sticky" aria-expanded="false">
+          <span class="sr-only">Open main menu</span>
+          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M1 1h15M1 7h15M1 13h15" />
+          </svg>
+        </button>
+      </div>
+      <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
+        <ul
+          class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
+          <li>
+            <a href="#"
+              class="block py-2 px-3 text-white bg-red-700 rounded-sm md:bg-transparent md:text-red-700 md:p-0"
+              aria-current="page">Главная</a>
+          </li>
+          <li>
+            <a href="#"
+              class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Гараж</a>
+          </li>
+          <li>
+            <a href="#"
+              class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Аккаунт</a>
+          </li>
         </ul>
-      </template>
-
-      <template x-if="vehicles.length === 0">
-        <p class="text-gray-500">Машины не найдены. Добавьте первую в <a href="garage.html" class="text-blue-500 underline">гараже</a>.</p>
-      </template>
+      </div>
     </div>
-  </div>
+  </nav>
+<div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Мой гараж</h1>
+
+        <div x-show="cars.length === 0" class="bg-white rounded-lg shadow p-6 text-center mb-6">
+            <i class="fas fa-car text-4xl text-gray-300 mb-4"></i>
+            <h2 class="text-xl font-semibold text-gray-700 mb-2">В вашем гараже пока нет машин</h2>
+            <p class="text-gray-500 mb-4">Добавьте свою первую машину</p>
+            <button @click="addNewCar()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+                <i class="fas fa-plus mr-2"></i>Добавить машину
+            </button>
+        </div>
+
+        <div x-show="cars.length > 0" class="space-y-4">
+            <template x-for="(car, index) in cars" :key="index">
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 bg-gray-50">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-800" x-text="`${car.brand} ${car.model}`"></h3>
+                            <div class="flex space-x-2">
+                                <button @click="editCar(index)" class="text-gray-500 hover:text-blue-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button @click="deleteCar(index)" class="text-gray-500 hover:text-red-600">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <p class="text-sm text-gray-500">VIN</p>
+                                <div class="flex items-center">
+                                    <span class="font-medium" x-text="car.vin"></span>
+                                    <button @click="copyToClipboard(car.vin)" class="ml-2 text-gray-400 hover:text-gray-600">
+                                        <i class="far fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Год выпуска</p>
+                                <p class="font-medium" x-text="car.year"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Пробег</p>
+                                <p class="font-medium" x-text="`${car.mileage} км`"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Тип кузова</p>
+                                <p class="font-medium" x-text="car.bodyType"></p>
+                            </div>
+                        </div>
+                        
+                        <div x-show="car.image" class="mt-3">
+                            <img :src="car.image" alt="Фото автомобиля" class="w-full h-48 object-cover rounded">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <div class="bg-white rounded-lg shadow border-2 border-dashed border-gray-300 hover:border-red-400 transition-colors">
+                <button @click="addNewCar()" class="w-full p-6 text-center">
+                    <i class="fas fa-plus-circle text-3xl text-red-500 mb-2"></i>
+                    <p class="text-lg font-medium text-gray-700">Добавить новую машину</p>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function garageApp() {
+            return {
+                cars: [
+                    {
+                        brand: 'Toyota',
+                        model: 'Camry',
+                        vin: 'JT2BF22K1W0123456',
+                        year: 2018,
+                        mileage: 45000,
+                        bodyType: 'Седан',
+                        image: 'https://via.placeholder.com/400x200?text=Toyota+Camry'
+                    },
+                    {
+                        brand: 'BMW',
+                        model: 'X5',
+                        vin: '5UXCR6C56KLL12345',
+                        year: 2019,
+                        mileage: 32000,
+                        bodyType: 'Внедорожник',
+                        image: ''
+                    }
+                ],
+                
+                addNewCar() {
+                    this.cars.push({
+                        brand: 'Новая марка',
+                        model: 'Новая модель',
+                        vin: 'XXXXXXXXXXXXXXX',
+                        year: new Date().getFullYear(),
+                        mileage: 0,
+                        bodyType: 'Седан',
+                        image: ''
+                    });
+                },
+                
+                editCar(index) {
+                    const newBrand = prompt('Введите марку:', this.cars[index].brand);
+                    const newModel = prompt('Введите модель:', this.cars[index].model);
+                    
+                    if (newBrand && newModel) {
+                        this.cars[index].brand = newBrand;
+                        this.cars[index].model = newModel;
+                    }
+                },
+                
+                deleteCar(index) {
+                    if (confirm('Вы уверены, что хотите удалить эту машину?')) {
+                        this.cars.splice(index, 1);
+                    }
+                },
+                
+                copyToClipboard(text) {
+                    navigator.clipboard.writeText(text);
+                    alert('VIN скопирован в буфер обмена');
+                }
+            }
+        }
+    </script>
 </body>
-</html>
