@@ -1,74 +1,223 @@
 <!DOCTYPE html>
 <html lang="ru" x-data="garageApp()">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoMT — Гараж</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoMT — Главная ТО</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
   <script src="https://unpkg.com/alpinejs" defer></script>
-  <script>
-  if (!localStorage.getItem('token')) {
-    window.location.href = 'login.html';
-  }
-</script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 min-h-screen p-4">
-  <div class="max-w-2xl mx-auto bg-white shadow p-6 rounded-xl">
-    <h1 class="text-2xl font-bold mb-4">Ваш гараж</h1>
 
-    <div class="mb-6" x-show="vehicles.length > 0">
-      <template x-for="v in vehicles" :key="v.id">
-        <div class="border p-4 mb-2 rounded">
-          <strong x-text="v.make + ' ' + v.model"></strong>
-          <p class="text-sm text-gray-500">VIN: <span x-text="v.vin"></span>, Год: <span x-text="v.year"></span>, Пробег: <span x-text="v.mileage + ' км'"></span></p>
-        </div>
-      </template>
+
+<body class="bg-gray-100">
+  <nav class="bg-white w-full z-20 top-0 start-0 border-b border-gray-200">
+    <div class="max-w-screen-xl flex flex-wrap items-center justify-between md:justify-center mx-auto p-4 relative">
+      <img src="./images/logo.png" class="h-14 md:absolute md:left-4" alt="Logo">
+
+      <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+        <button data-collapse-toggle="navbar-sticky" type="button"
+          class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          aria-controls="navbar-sticky" aria-expanded="false">
+          <span class="sr-only">Open main menu</span>
+          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M1 1h15M1 7h15M1 13h15" />
+          </svg>
+        </button>
+      </div>
+      <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
+        <ul
+          class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
+          <li>
+            <a href="#"
+              class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Главная</a>
+          </li>
+          <li>
+            <a href="#"
+              class="block py-2 px-3 text-white bg-red-700 rounded-sm md:bg-transparent md:text-red-700 md:p-0"
+              aria-current="page">Гараж</a>
+          </li>
+          <li>
+            <a href="#"
+              class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Аккаунт</a>
+          </li>
+        </ul>
+      </div>
     </div>
+  </nav>
+  <div class="min-h-screen max-w-screen-md mx-auto">
+    <div class="container mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-8">Мой гараж</h1>
 
-    <h2 class="text-xl font-semibold mb-2">Добавить автомобиль</h2>
-    <form @submit.prevent="addVehicle">
-      <input type="text" placeholder="VIN" class="border rounded p-2 w-full mb-2" x-model="newVehicle.vin" required>
-      <input type="text" placeholder="Марка" class="border rounded p-2 w-full mb-2" x-model="newVehicle.make" required>
-      <input type="text" placeholder="Модель" class="border rounded p-2 w-full mb-2" x-model="newVehicle.model" required>
-      <input type="number" placeholder="Год выпуска" class="border rounded p-2 w-full mb-2" x-model="newVehicle.year" required>
-      <input type="number" placeholder="Пробег" class="border rounded p-2 w-full mb-4" x-model="newVehicle.mileage" required>
-      <button class="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700" type="submit">Сохранить</button>
-    </form>
+      <div x-show="cars.length === 0" class="bg-white rounded-lg shadow p-6 text-center mb-6">
+        <i class="fas fa-car text-4xl text-gray-300 mb-4"></i>
+        <h2 class="text-xl font-semibold text-gray-700 mb-2">В вашем гараже пока нет машин</h2>
+        <p class="text-gray-500 mb-4">Добавьте свою первую машину</p>
+        <button @click="addNewCar()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+          <i class="fas fa-plus mr-2"></i>Добавить машину
+        </button>
+      </div>
+
+      <div x-show="cars.length > 0" class="space-y-4">
+        <template x-for="(car, index) in cars" :key="index">
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <!-- Мобильная версия (изображение сверху) -->
+            <div class="md:hidden">
+              <div class="w-full">
+                <img src="images/car_stub.png" alt="" class="w-full h-68 object-cover">
+              </div>
+
+              <div class="p-4">
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 class="text-lg font-semibold text-gray-800" x-text="`${car.brand} ${car.model}`"></h3>
+                    <div class="flex items-center text-gray-600 mt-1">
+                      <span x-text="`${car.mileage} км`" class="mr-2"></span>
+                      <button @click="updateMileage(index)" class="text-gray-400 hover:text-blue-500">
+                        <i class="fas fa-sync-alt text-xs"></i>
+                      </button>
+                    </div>
+                    <p class="text-gray-600 mt-1" x-text="car.year"></p>
+                  </div>
+
+                  <div class="flex space-x-3">
+                    <button @click="editCar(index)" class="text-gray-500 hover:text-blue-600">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button @click="deleteCar(index)" class="text-gray-500 hover:text-red-600">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                  <span class="text-sm text-gray-500">VIN:</span>
+                  <div class="flex items-center">
+                    <span class="font-medium mr-2" x-text="car.vin"></span>
+                    <button @click="copyToClipboard(car.vin)" class="text-gray-400 hover:text-gray-600">
+                      <i class="far fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Десктопная версия (изображение слева, контент справа) -->
+            <div class="hidden md:flex">
+              <div class="w-1/3 min-w-[200px]">
+                <img src="images/car_stub.png" alt="Фото автомобиля" class="w-full h-full object-cover">
+              </div>
+
+              <div class="flex-1 p-4">
+                <div class="flex justify-center">
+                  <!-- Первая колонка -->
+                  <div class="w-full pr-4">
+                    <h3 class="text-lg font-semibold text-gray-800" x-text="`${car.brand} ${car.model}`"></h3>
+                    <div class="flex items-center text-gray-600 mt-2">
+                      <span x-text="`${car.mileage} км`" class="mr-2"></span>
+                      <button @click="updateMileage(index)" class="text-gray-400 hover:text-red-500">
+                        <i class="fas fa-sync-alt text-sm"></i>
+                      </button>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-2" x-text="car.year"></p>
+                  </div>
+
+                  <!-- Вторая колонка -->
+                  <div class="w-2/3 flex flex-col items-end">
+                    <div class=" justify-between flex flex-col items-end">
+                      <div class="flex mb-9 space-x-3">
+                        <button @click="editCar(index)" class="text-gray-500 hover:text-blue-600">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button @click="deleteCar(index)" class="text-gray-500 hover:text-red-600">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </div>
+                      <div class="flex items-center">
+                        <span class="text-sm text-gray-500 mr-2">VIN:</span>
+                        <span class="font-medium mr-2" x-text="car.vin"></span>
+                        <button @click="copyToClipboard(car.vin)" class="text-gray-400 hover:text-gray-600">
+                          <i class="far fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <div
+          class="bg-white rounded-lg shadow border-2 border-dashed border-gray-300 hover:border-red-400 transition-colors">
+          <button @click="addNewCar()" class="w-full p-2 flex justify-center">
+            <i class="fas fa-plus-circle text-3xl text-red-500 m-2"></i>
+            <p class="text-lg font-medium text-gray-700 m-2">Добавить новую машину</p>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     function garageApp() {
       return {
-        vehicles: [],
-        newVehicle: {
-          vin: '', make: '', model: '', year: '', mileage: ''
-        },
-        async fetchVehicles() {
-          const res = await fetch('http://localhost:5291/api/vehicles', {
-            headers: {
-              'Authorization': 'Bearer ' + localStorage.getItem('token')
-            }
+        cars: [
+          {
+            brand: 'Toyota',
+            model: 'Camry',
+            vin: 'JT2BF22K1W0123456',
+            year: 2018,
+            mileage: 45000,
+            bodyType: 'Седан',
+            image: 'https://via.placeholder.com/400x200?text=Toyota+Camry'
+          },
+          {
+            brand: 'BMW',
+            model: 'X5',
+            vin: '5UXCR6C56KLL12345',
+            year: 2019,
+            mileage: 32000,
+            bodyType: 'Внедорожник',
+            image: ''
+          }
+        ],
+
+        addNewCar() {
+          this.cars.push({
+            brand: 'Новая марка',
+            model: 'Новая модель',
+            vin: 'XXXXXXXXXXXXXXX',
+            year: new Date().getFullYear(),
+            mileage: 0,
+            bodyType: 'Седан',
+            image: ''
           });
-          if (res.ok) {
-            this.vehicles = await res.json();
+        },
+
+        editCar(index) {
+          const newBrand = prompt('Введите марку:', this.cars[index].brand);
+          const newModel = prompt('Введите модель:', this.cars[index].model);
+
+          if (newBrand && newModel) {
+            this.cars[index].brand = newBrand;
+            this.cars[index].model = newModel;
           }
         },
-        async addVehicle() {
-          const res = await fetch('http://localhost:5291/api/vehicles', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + localStorage.getItem('token')
-            },
-            body: JSON.stringify(this.newVehicle)
-          });
-          if (res.ok) {
-            this.newVehicle = { vin: '', make: '', model: '', year: '', mileage: '' };
-            await this.fetchVehicles();
+
+        deleteCar(index) {
+          if (confirm('Вы уверены, что хотите удалить эту машину?')) {
+            this.cars.splice(index, 1);
           }
+        },
+
+        copyToClipboard(text) {
+          navigator.clipboard.writeText(text);
+          alert('VIN скопирован в буфер обмена');
         }
       }
     }
   </script>
 </body>
-</html>
