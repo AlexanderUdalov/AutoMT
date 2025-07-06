@@ -1,179 +1,476 @@
 <!DOCTYPE html>
-<html lang="ru" x-data>
+<html lang="ru" x-data="maintenance" x-init="init()">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AutoMT — Главная ТО</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-  <script src="https://unpkg.com/alpinejs" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AutoMT — Главная</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 
-<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
-  <nav class="bg-white fixed w-full z-20 top-0 start-0 border-b border-gray-200">
-    <div class="max-w-screen-xl flex flex-wrap items-center justify-between md:justify-center mx-auto p-4 relative">
-      <img src="./images/logo.png" class="h-14 md:absolute md:left-4" alt="Logo">
+<body class="bg-gray-100">
+    <nav class="bg-white w-full z-20 top-0 start-0 border-b border-gray-200">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between md:justify-center mx-auto p-4 relative">
+            <img src="./images/logo.png" class="h-14 md:absolute md:left-4" alt="Logo">
 
-      <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-        <button data-collapse-toggle="navbar-sticky" type="button"
-          class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
-          aria-controls="navbar-sticky" aria-expanded="false">
-          <span class="sr-only">Open main menu</span>
-          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M1 1h15M1 7h15M1 13h15" />
-          </svg>
-        </button>
-      </div>
-      <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
-        <ul
-          class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
-          <li>
-            <a href="#"
-              class="block py-2 px-3 text-white bg-red-700 rounded-sm md:bg-transparent md:text-red-700 md:p-0"
-              aria-current="page">Главная</a>
-          </li>
-          <li>
-            <a href="#"
-              class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Гараж</a>
-          </li>
-          <li>
-            <a href="#"
-              class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Аккаунт</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-<div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">Мой гараж</h1>
-
-        <div x-show="cars.length === 0" class="bg-white rounded-lg shadow p-6 text-center mb-6">
-            <i class="fas fa-car text-4xl text-gray-300 mb-4"></i>
-            <h2 class="text-xl font-semibold text-gray-700 mb-2">В вашем гараже пока нет машин</h2>
-            <p class="text-gray-500 mb-4">Добавьте свою первую машину</p>
-            <button @click="addNewCar()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
-                <i class="fas fa-plus mr-2"></i>Добавить машину
-            </button>
+            <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+                <button data-collapse-toggle="navbar-sticky" type="button"
+                    class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                    aria-controls="navbar-sticky" aria-expanded="false">
+                    <span class="sr-only">Open main menu</span>
+                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 17 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M1 1h15M1 7h15M1 13h15" />
+                    </svg>
+                </button>
+            </div>
+            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
+                <ul
+                    class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
+                    <li>
+                        <a href="#"
+                            class="block py-2 px-3 text-white bg-red-700 rounded-sm md:bg-transparent md:text-red-700 md:p-0"
+                            aria-current="page">Главная</a>
+                    </li>
+                    <li>
+                        <a href="./garage.html"
+                            class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Гараж</a>
+                    </li>
+                    <li>
+                        <a href="./account.html"
+                            class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Аккаунт</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-
-        <div x-show="cars.length > 0" class="space-y-4">
-            <template x-for="(car, index) in cars" :key="index">
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="p-4 border-b border-gray-200 bg-gray-50">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-800" x-text="`${car.brand} ${car.model}`"></h3>
-                            <div class="flex space-x-2">
-                                <button @click="editCar(index)" class="text-gray-500 hover:text-blue-600">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button @click="deleteCar(index)" class="text-gray-500 hover:text-red-600">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="p-4">
-                        <div class="grid grid-cols-2 gap-4 mb-3">
+    </nav>
+    <div class="min-h-screen max-w-screen-md mx-auto">
+        <div class="min-h-screen max-w-screen-md mx-auto">
+            <div class="container mx-auto px-4 py-2">
+                <!-- Информация о машине (не карточка) -->
+                <div class="mb-6">
+                    <!-- Мобильная версия -->
+                    <div class="md:hidden">
+                        <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-500">VIN</p>
+                                <h1 class="text-xl font-bold text-gray-800 mb-1"
+                                    x-text="`${currentCar.brand} ${currentCar.model}`"></h1>
                                 <div class="flex items-center">
-                                    <span class="font-medium" x-text="car.vin"></span>
-                                    <button @click="copyToClipboard(car.vin)" class="ml-2 text-gray-400 hover:text-gray-600">
-                                        <i class="far fa-copy"></i>
+                                    <span class="text-sm text-gray-500 mr-2" x-text="currentCar.year"></span>
+                                    <span class="text-sm text-gray-500">•</span>
+                                    <span class="text-sm text-gray-500 ml-2" x-text="`${currentCar.mileage} км`"></span>
+                                    <button @click="updateMileage()" class="text-gray-400 hover:text-red-500 ml-2">
+                                        <i class="fas fa-sync-alt text-sm"></i>
                                     </button>
                                 </div>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500">Год выпуска</p>
-                                <p class="font-medium" x-text="car.year"></p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">Пробег</p>
-                                <p class="font-medium" x-text="`${car.mileage} км`"></p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">Тип кузова</p>
-                                <p class="font-medium" x-text="car.bodyType"></p>
+                                <span class="text-sm text-gray-500">VIN: <span class="font-medium"
+                                        x-text="currentCar.vin"></span></span>
+                                <button @click="copyToClipboard(currentCar.vin)"
+                                    class="text-gray-400 hover:text-gray-600">
+                                    <i class="far fa-copy text-sm"></i>
+                                </button>
                             </div>
                         </div>
-                        
-                        <div x-show="car.image" class="mt-3">
-                            <img :src="car.image" alt="Фото автомобиля" class="w-full h-48 object-cover rounded">
+                    </div>
+
+                    <!-- Десктопная версия -->
+                    <div class="hidden md:block">
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-800"
+                                    x-text="`${currentCar.brand} ${currentCar.model}`"></h1>
+                                <div class="flex items-center mt-1">
+                                    <span class="text-gray-500 mr-3" x-text="currentCar.year"></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-gray-500 mr-2">VIN: <span class="font-medium"
+                                        x-text="currentCar.vin"></span></span>
+                                <button @click="copyToClipboard(currentCar.vin)"
+                                    class="text-gray-400 hover:text-gray-600 mr-4">
+                                    <i class="far fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center">
+                                <h2 class="text-l font-bold text-gray-800" x-text="`${currentCar.mileage} км`"></h2>
+                                <button @click="updateMileage()" class="text-gray-400 hover:text-red-500 ml-4">
+                                    <i class="fas fa-sync-alt text-md"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </template>
 
-            <div class="bg-white rounded-lg shadow border-2 border-dashed border-gray-300 hover:border-red-400 transition-colors">
-                <button @click="addNewCar()" class="w-full p-6 text-center">
-                    <i class="fas fa-plus-circle text-3xl text-red-500 mb-2"></i>
-                    <p class="text-lg font-medium text-gray-700">Добавить новую машину</p>
-                </button>
+                <!-- Список работ по ТО -->
+                <div class="space-y-3 md:space-y-4">
+                    <template x-for="(item, index) in sortedMaintenanceItems" :key="item.id">
+                        <div class="bg-white rounded-lg shadow overflow-hidden" :class="{
+               'border-l-4 border-red-500': isOverdue(item),
+               'border-l-4 border-yellow-400': isDueSoon(item) && !isOverdue(item)
+             }">
+                            <!-- Основная информация (всегда видима) -->
+                            <div class="p-3 flex items-center" @click="toggleExpand(item.id)">
+                                <!-- Иконка работы -->
+                                <div class="mr-3 text-red-500 text-xl">
+                                    <i :class="getIconClass(item.type)"></i>
+                                </div>
+
+                                <!-- Название и прогресс -->
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-semibold text-gray-800" x-text="item.name"></h3>
+
+                                    <!-- Прогресс бар -->
+                                    <div class="mt-1">
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-red-500 h-2 rounded-full"
+                                                :style="`width: ${getProgress(item)}%`"></div>
+                                        </div>
+                                        <div class="text-xs text-gray-600 mt-1" x-text="getShortDueText(item)"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Кнопки -->
+                                <div class="ml-2 flex items-center space-x-2">
+                                    <!-- Кнопка выполнения -->
+                                    <button @click.stop="markAsDone(item.id)"
+                                        class="bg-green-500 hover:bg-green-600 text-white rounded p-2 flex items-center justify-center">
+                                        <i class="fas fa-check text-sm"></i>
+                                    </button>
+
+                                    <!-- Кнопка расширения -->
+                                    <button @click.stop="toggleExpand(item.id)"
+                                        class="text-gray-500 hover:text-blue-600 p-1">
+                                        <i class="fas"
+                                            :class="expandedItems.includes(item.id) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Дополнительная информация (раскрывается) -->
+                            <div x-show="expandedItems.includes(item.id)" x-collapse class="px-3 pb-3">
+                                <div class="border-t border-gray-200 pt-3">
+                                    <!-- Регламент и последняя замена -->
+                                    <div class="flex justify-between text-sm text-gray-600 mb-3">
+                                        <div>
+                                            <span class="font-medium">Регламент:</span>
+                                            <span x-text="getIntervalText(item)" class="ml-1"></span>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Последняя замена:</span>
+                                            <span x-text="getShortLastChangedText(item)" class="ml-1"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Список запчастей -->
+                                    <div x-data="{ showParts: false }">
+                                        <button @click="showParts = !showParts"
+                                            class="flex items-center text-sm text-blue-600 mb-2">
+                                            <i class="fas fa-box-open mr-2"></i>
+                                            <span>Запчасти</span>
+                                            <i class="fas ml-2"
+                                                :class="showParts ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                        </button>
+
+                                        <div x-show="showParts" x-collapse class="bg-gray-50 rounded p-2">
+                                            <template x-if="item.parts && item.parts.length > 0">
+                                                <template x-for="part in item.parts" :key="part.id">
+                                                    <div class="mb-2 last:mb-0 text-sm">
+                                                        <div class="font-medium" x-text="part.name"></div>
+                                                        <div class="text-gray-600"
+                                                            x-text="`Артикул: ${part.code || 'нет'}`"></div>
+                                                        <div class="text-gray-600"
+                                                            x-text="`Кол-во: ${part.quantity || 1}`"></div>
+                                                    </div>
+                                                </template>
+                                            </template>
+                                            <template x-if="!item.parts || item.parts.length === 0">
+                                                <div class="text-sm text-gray-500">Нет запчастей</div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Кнопка добавления новой работы -->
+                    <div
+                        class="bg-white rounded-lg shadow border-2 border-dashed border-gray-300 hover:border-red-400 transition-colors mt-4">
+                        <button @click="addMaintenanceItem()"
+                            class="w-full p-3 md:p-4 flex justify-center items-center">
+                            <i class="fas fa-plus-circle text-xl md:text-2xl text-red-500 mr-2 md:mr-3"></i>
+                            <p class="text-base md:text-lg font-medium text-gray-700">Добавить работу по ТО</p>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function garageApp() {
-            return {
-                cars: [
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('maintenance', () => ({
+                currentCar: {
+                    brand: 'Toyota',
+                    model: 'Camry',
+                    year: 2018,
+                    vin: 'JT2BF22K1W0123456',
+                    mileage: 75000
+                },
+
+                maintenanceItems: [
                     {
-                        brand: 'Toyota',
-                        model: 'Camry',
-                        vin: 'JT2BF22K1W0123456',
-                        year: 2018,
-                        mileage: 45000,
-                        bodyType: 'Седан',
-                        image: 'https://via.placeholder.com/400x200?text=Toyota+Camry'
+                        id: 1,
+                        name: 'Замена моторного масла',
+                        type: 'oil_change',
+                        due_type: 'mileage',
+                        due_value: 80000,
+                        interval: 10000,
+                        last_changed: 70000,
+                        parts: [
+                            { id: 1, name: 'Масло моторное 5W-30', code: 'MOBIL-5W30-SYN', quantity: 5 },
+                            { id: 2, name: 'Масляный фильтр', code: 'TOYOTA-15678', quantity: 1 }
+                        ]
                     },
                     {
-                        brand: 'BMW',
-                        model: 'X5',
-                        vin: '5UXCR6C56KLL12345',
-                        year: 2019,
-                        mileage: 32000,
-                        bodyType: 'Внедорожник',
-                        image: ''
+                        id: 2,
+                        name: 'Замена воздушного фильтра',
+                        type: 'filter_change',
+                        due_type: 'mileage',
+                        due_value: 90000,
+                        interval: 15000,
+                        last_changed: 75000,
+                        parts: [
+                            { id: 3, name: 'Воздушный фильтр', code: 'MANN-C25138', quantity: 1 }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: 'Замена салонного фильтра',
+                        type: 'filter_change',
+                        due_type: 'days',
+                        due_value: 15,
+                        interval: 365,
+                        last_changed: '2023-11-01',
+                        parts: [
+                            { id: 4, name: 'Салонный фильтр угольный', code: 'FRAM-CF10934', quantity: 1 }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        name: 'Проверка тормозной системы',
+                        type: 'inspection',
+                        due_type: 'mileage',
+                        due_value: 77000,
+                        interval: 5000,
+                        last_changed: 72000,
+                        parts: []
+                    },
+                    {
+                        id: 5,
+                        name: 'Замена ремня ГРМ',
+                        type: 'belt_change',
+                        due_type: 'mileage',
+                        due_value: 120000,
+                        interval: 60000,
+                        last_changed: 60000,
+                        parts: [
+                            { id: 5, name: 'Ремень ГРМ', code: 'GATES-TB275', quantity: 1 },
+                            { id: 6, name: 'Ролик натяжителя', code: 'GATES-T40070', quantity: 1 }
+                        ]
                     }
                 ],
-                
-                addNewCar() {
-                    this.cars.push({
-                        brand: 'Новая марка',
-                        model: 'Новая модель',
-                        vin: 'XXXXXXXXXXXXXXX',
-                        year: new Date().getFullYear(),
-                        mileage: 0,
-                        bodyType: 'Седан',
-                        image: ''
+                expandedItems: [],
+
+                // Переключение раскрытия карточки
+                toggleExpand(id) {
+                    if (this.expandedItems.includes(id)) {
+                        this.expandedItems = this.expandedItems.filter(itemId => itemId !== id);
+                    } else {
+                        this.expandedItems.push(id);
+                    }
+                },
+
+                // Отсортированные работы
+                get sortedMaintenanceItems() {
+                    return [...this.maintenanceItems].sort((a, b) => {
+                        // Просроченные в начале
+                        if (this.isOverdue(a) && !this.isOverdue(b)) return -1;
+                        if (!this.isOverdue(a) && this.isOverdue(b)) return 1;
+
+                        // Затем близкие к выполнению
+                        if (this.isDueSoon(a) && !this.isDueSoon(b)) return -1;
+                        if (!this.isDueSoon(a) && this.isDueSoon(b)) return 1;
+
+                        // Затем по оставшемуся ресурсу
+                        const aRemaining = this.getRemainingValue(a);
+                        const bRemaining = this.getRemainingValue(b);
+                        return aRemaining - bRemaining;
                     });
                 },
-                
-                editCar(index) {
-                    const newBrand = prompt('Введите марку:', this.cars[index].brand);
-                    const newModel = prompt('Введите модель:', this.cars[index].model);
-                    
-                    if (newBrand && newModel) {
-                        this.cars[index].brand = newBrand;
-                        this.cars[index].model = newModel;
+
+                // Методы
+                getIconClass(type) {
+                    const icons = {
+                        'oil_change': 'fas fa-oil-can',
+                        'filter_change': 'fas fa-filter',
+                        'inspection': 'fas fa-search',
+                        'belt_change': 'fas fa-cog',
+                        'default': 'fas fa-tools'
+                    };
+                    return icons[type] || icons.default;
+                },
+
+                getProgress(item) {
+                    if (item.due_type === 'mileage') {
+                        const passed = this.currentCar.mileage - item.last_changed;
+                        return Math.min(100, Math.max(0, (passed / item.interval) * 100));
+                    } else {
+                        const lastChangedDate = new Date(item.last_changed);
+                        const today = new Date();
+                        const daysPassed = Math.floor((today - lastChangedDate) / (1000 * 60 * 60 * 24));
+                        return Math.min(100, Math.max(0, (daysPassed / item.interval) * 100));
                     }
                 },
-                
-                deleteCar(index) {
-                    if (confirm('Вы уверены, что хотите удалить эту машину?')) {
-                        this.cars.splice(index, 1);
+
+                getRemainingValue(item) {
+                    if (item.due_type === 'mileage') {
+                        return item.due_value - this.currentCar.mileage;
+                    } else {
+                        return item.due_value;
                     }
                 },
-                
+
+                isOverdue(item) {
+                    if (item.due_type === 'mileage') {
+                        return this.currentCar.mileage >= item.due_value;
+                    } else {
+                        return item.due_value <= 0;
+                    }
+                },
+
+                isDueSoon(item) {
+                    const remaining = this.getRemainingValue(item);
+                    if (item.due_type === 'mileage') {
+                        return remaining <= 3000; // 1000 км до ТО
+                    } else {
+                        return remaining <= 7; // 7 дней до ТО
+                    }
+                },
+
+                getDueText(item) {
+                    if (item.due_type === 'mileage') {
+                        const remaining = item.due_value - this.currentCar.mileage;
+                        return remaining > 0 ? `Осталось ${remaining} км` : `Просрочено на ${-remaining} км`;
+                    } else {
+                        return item.due_value > 0 ? `Осталось ${item.due_value} дней` : `Просрочено на ${-item.due_value} дней`;
+                    }
+                },
+
+                getShortDueText(item) {
+                    if (item.due_type === 'mileage') {
+                        const remaining = item.due_value - this.currentCar.mileage;
+                        return remaining > 0 ? `${remaining} км` : `+${-remaining} км`;
+                    } else {
+                        return item.due_value > 0 ? `${item.due_value} дн.` : `+${-item.due_value} дн.`;
+                    }
+                },
+
+                getIntervalText(item) {
+                    return item.due_type === 'mileage'
+                        ? `Каждые ${item.interval} км`
+                        : `Каждые ${item.interval} дней`;
+                },
+
+                getLastChangedText(item) {
+                    if (item.due_type === 'mileage') {
+                        return `Последняя замена: ${item.last_changed} км`;
+                    } else {
+                        const date = new Date(item.last_changed);
+                        return `Последняя замена: ${date.toLocaleDateString()}`;
+                    }
+                },
+
+                getShortLastChangedText(item) {
+                    if (item.due_type === 'mileage') {
+                        return `@${item.last_changed} км`;
+                    } else {
+                        const date = new Date(item.last_changed);
+                        return `@${date.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' })}`;
+                    }
+                },
+
+                // Остальные методы (copyToClipboard, updateMileage, markAsDone, addMaintenanceItem, editMaintenanceList)
+                // остаются такими же как в предыдущем примере
                 copyToClipboard(text) {
-                    navigator.clipboard.writeText(text);
-                    alert('VIN скопирован в буфер обмена');
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            alert('VIN скопирован в буфер обмена');
+                        })
+                        .catch(err => {
+                            console.error('Ошибка копирования: ', err);
+                        });
+                },
+
+                updateMileage() {
+                    const newMileage = prompt('Введите текущий пробег:', this.currentCar.mileage);
+                    if (newMileage && !isNaN(newMileage)) {
+                        this.currentCar.mileage = parseInt(newMileage);
+                    }
+                },
+
+                markAsDone(id) {
+                    const item = this.maintenanceItems.find(i => i.id === id);
+                    if (confirm(`Отметить "${item.name}" как выполненное?`)) {
+                        if (item.due_type === 'mileage') {
+                            item.last_changed = this.currentCar.mileage;
+                            item.due_value = this.currentCar.mileage + item.interval;
+                        } else {
+                            item.last_changed = new Date().toISOString().split('T')[0];
+                            item.due_value = item.interval;
+                        }
+                    }
+                },
+
+                addMaintenanceItem() {
+                    const name = prompt('Введите название работы:');
+                    if (name) {
+                        const newItem = {
+                            id: Date.now(),
+                            name: name,
+                            type: 'other',
+                            due_type: 'mileage',
+                            due_value: this.currentCar.mileage + 10000,
+                            interval: 10000,
+                            last_changed: this.currentCar.mileage,
+                            parts: []
+                        };
+                        this.maintenanceItems.push(newItem);
+                    }
+                },
+
+                editMaintenanceList() {
+                    alert('Здесь будет открытие модального окна для редактирования всего списка работ');
+                },
+
+                init() {
+                    // Пересчет due_value для работ по дням
+                    this.maintenanceItems.forEach(item => {
+                        if (item.due_type === 'days' && item.last_changed) {
+                            const lastChangedDate = new Date(item.last_changed);
+                            const today = new Date();
+                            const daysPassed = Math.floor((today - lastChangedDate) / (1000 * 60 * 60 * 24));
+                            item.due_value = item.interval - daysPassed;
+                        }
+                    });
                 }
-            }
-        }
+            }));
+        });
     </script>
 </body>
