@@ -6,12 +6,15 @@ public class Vehicle
 
     public string VIN { get; set; } = default!;
 
-    // todo: parsed VIN
+    public string Brand { get; set; } = default!;
+
+    public string Model { get; set; } = default!;
+
+    public int Year { get; set; }
 
     public int CurrentMileage { get; set; }
 
     public int UserId { get; set; }
-    public User User { get; set; } = default!;
 
-    public ICollection<ServiceRecord> ServiceRecords { get; set; } = new List<ServiceRecord>();
+    public ICollection<Maintenance> Maintenances { get; set; } = new List<Maintenance>();
 }

@@ -93,12 +93,12 @@ app.MapPost("/api/vehicles", async (Vehicle vehicle, AppDbContext db, HttpContex
 
 app.MapPost("/api/register", async (RegisterDTO dto, AppDbContext db) =>
 {
-    if (await db.Users.AnyAsync(u => u.Username == dto.Username))
+    if (await db.Users.AnyAsync(u => u.Name == dto.Username))
         return Results.BadRequest("Username already exists");
 
     var user = new User
     {
-        Username = dto.Username,
+        Name = dto.Username,
         PasswordHash = passwordHasher.HashPassword(dto.Username, dto.Password)
     };
 
@@ -111,7 +111,7 @@ app.MapPost("/api/register", async (RegisterDTO dto, AppDbContext db) =>
 
 app.MapPost("/api/login", async (LoginDTO dto, AppDbContext db) =>
 {
-    var user = await db.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Name == dto.Username);
     if (user is null)
         return Results.Unauthorized();
 
@@ -124,7 +124,7 @@ app.MapPost("/api/login", async (LoginDTO dto, AppDbContext db) =>
     {
         Subject = new ClaimsIdentity(new[] {
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Username)
+        new Claim(ClaimTypes.Name, user.Name)
     }),
         Expires = DateTime.UtcNow.AddDays(7),
         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -153,7 +153,7 @@ app.MapGet("/api/vehicles/{vehicleId}/services", async (int vehicleId, AppDbCont
 }).RequireAuthorization();
 
 // Добавить запись
-app.MapPost("/api/vehicles/{vehicleId}/services", async (int vehicleId, ServiceRecord dto, AppDbContext db, HttpContext ctx) =>
+app.MapPost("/api/vehicles/{vehicleId}/services", async (int vehicleId, Maintenance dto, AppDbContext db, HttpContext ctx) =>
 {
     var userId = GetUserId(ctx);
     if (userId is null) return Results.Unauthorized();
