@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AutoMT — Автомобиль</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="./js/app.js"></script>
+</head>
+
+<body class="bg-gray-100">
+    <nav class="bg-white w-full z-20 top-0 start-0 border-b border-gray-200">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between md:justify-center mx-auto p-4 relative">
+            <img src="./images/logo.png" class="h-14 md:absolute md:left-4" alt="Logo">
+
+            <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+                <button data-collapse-toggle="navbar-sticky" type="button"
+                    class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                    aria-controls="navbar-sticky" aria-expanded="false">
+                    <span class="sr-only">Open main menu</span>
+                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 17 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M1 1h15M1 7h15M1 13h15" />
+                    </svg>
+                </button>
+            </div>
+            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
+                <ul
+                    class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white">
+                    <li>
+                        <a href="./index.html"
+                            class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Главная</a>
+                    </li>
+                    <li>
+                        <a href="./garage.html"
+                            class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Гараж</a>
+                    </li>
+                    <li>
+                        <a href="./account.html"
+                            class="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-red-700 md:p-0">Аккаунт</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="min-h-screen max-w-screen-md mx-auto" x-data="vehicleForm()" x-init="init()">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center mb-6">
+                <a href="./garage.html" class="text-red-600 hover:text-red-800 mr-2">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-3xl font-bold text-gray-800"
+                    x-text="isEditMode ? 'Редактировать автомобиль' : 'Добавить автомобиль'"></h1>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <form @submit.prevent="submitForm()">
+                    <!-- Основная информация -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Основная информация</h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Марка -->
+                            <div>
+                                <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Марка</label>
+                                <input type="text" id="brand" x-model="car.brand" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+
+                            <!-- Модель -->
+                            <div>
+                                <label for="model" class="block text-sm font-medium text-gray-700 mb-1">Модель</label>
+                                <input type="text" id="model" x-model="car.model" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+
+                            <!-- Год выпуска -->
+                            <div>
+                                <label for="year" class="block text-sm font-medium text-gray-700 mb-1">Год
+                                    выпуска</label>
+                                <input type="number" id="year" x-model="car.year" min="1900"
+                                    :max="new Date().getFullYear()" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+
+                            <!-- VIN -->
+                            <div>
+                                <label for="vin" class="block text-sm font-medium text-gray-700 mb-1">VIN</label>
+                                <input type="text" id="vin" x-model="car.vin" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+
+                            <!-- Текущий пробег -->
+                            <div>
+                                <label for="mileage" class="block text-sm font-medium text-gray-700 mb-1">Текущий пробег
+                                    (км)</label>
+                                <input type="number" id="mileage" x-model="car.currentMileage" min="0" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Регламентные работы -->
+                    <div class="mb-8">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2">
+                            <h2 class="text-xl font-semibold text-gray-800">Регламентные работы</h2>
+                            <button type="button" @click="showMaintenanceList = !showMaintenanceList"
+                                class="flex items-center text-sm text-red-600 hover:text-red-800">
+                                <span x-text="showMaintenanceList ? 'Скрыть список' : 'Показать список'"></span>
+                                <i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-200"
+                                    :class="{'transform rotate-180': showMaintenanceList}"></i>
+                            </button>
+                        </div>
+
+                        <div x-show="showMaintenanceList" x-transition class="space-y-4">
+                            <template x-for="(item, index) in maintenanceItems" :key="index">
+                                <div class="border border-gray-200 rounded-md p-3">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="flex items-center">
+                                            <i :class="item.icon" class="mr-3 text-gray-500 w-5 text-center"></i>
+                                            <span x-text="item.type" class="font-medium"></span>
+                                        </div>
+                                        <button type="button" @click="removeMaintenanceItem(index)"
+                                            class="text-gray-400 hover:text-red-600">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm text-gray-600 mb-1">Интервал (км)</label>
+                                            <input type="number" x-model="item.interval" min="1000"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm text-gray-600 mb-1">Последнее выполнение
+                                                (км)</label>
+                                            <input type="number" x-model="item.lastCompletedMileage" min="0"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm text-gray-600 mb-1">Следующее выполнение
+                                                (км)</label>
+                                            <input type="number"
+                                                :value="Number(item.lastCompletedMileage) + Number(item.interval)"
+                                                readonly
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="flex justify-end space-x-4">
+                        <a href="./garage.html"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            Отмена
+                        </a>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                            Сохранить автомобиль
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
