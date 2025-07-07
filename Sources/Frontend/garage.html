@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/alpinejs" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" src="./js/app.js"></script>
 </head>
 
 
@@ -47,7 +48,7 @@
       </div>
     </div>
   </nav>
-  <div class="min-h-screen max-w-screen-md mx-auto">
+  <div class="min-h-screen max-w-screen-md mx-auto"  x-data="garage()" x-init="init()">
     <div class="container mx-auto px-4 py-8">
       <h1 class="text-3xl font-bold text-gray-800 mb-8">Мой гараж</h1>
 
@@ -55,13 +56,13 @@
         <i class="fas fa-car text-4xl text-gray-300 mb-4"></i>
         <h2 class="text-xl font-semibold text-gray-700 mb-2">В вашем гараже пока нет машин</h2>
         <p class="text-gray-500 mb-4">Добавьте свою первую машину</p>
-        <button @click="addNewCar()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+        <button @click="window.location.href = 'vehicleForm.html'" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
           <i class="fas fa-plus mr-2"></i>Добавить машину
         </button>
       </div>
 
       <div x-show="cars.length > 0" class="space-y-4">
-        <template x-for="(car, index) in cars" :key="index">
+        <template  x-for="car in cars" :key="car.id">
           <div class="bg-white rounded-lg shadow overflow-hidden">
             <!-- Мобильная версия (изображение сверху) -->
             <div class="md:hidden">
@@ -75,7 +76,7 @@
                     <h3 class="text-lg font-semibold text-gray-800" x-text="`${car.brand} ${car.model}`"></h3>
                     <div class="flex items-center text-gray-600 mt-1">
                       <span x-text="`${car.mileage} км`" class="mr-2"></span>
-                      <button @click="updateMileage(index)" class="text-gray-400 hover:text-blue-500">
+                      <button @click="updateMileage(car.id)" class="text-gray-400 hover:text-blue-500">
                         <i class="fas fa-sync-alt text-xs"></i>
                       </button>
                     </div>
@@ -83,10 +84,10 @@
                   </div>
 
                   <div class="flex space-x-3">
-                    <button @click="editCar(index)" class="text-gray-500 hover:text-blue-600">
+                    <button @click="window.location.href = `vehicleForm.html?id=${car.id}`" class="text-gray-500 hover:text-blue-600">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button @click="deleteCar(index)" class="text-gray-500 hover:text-red-600">
+                    <button @click="deleteCar(car.id)" class="text-gray-500 hover:text-red-600">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
@@ -117,7 +118,7 @@
                     <h3 class="text-lg font-semibold text-gray-800" x-text="`${car.brand} ${car.model}`"></h3>
                     <div class="flex items-center text-gray-600 mt-2">
                       <span x-text="`${car.mileage} км`" class="mr-2"></span>
-                      <button @click="updateMileage(index)" class="text-gray-400 hover:text-red-500">
+                      <button @click="updateMileage(car.id)" class="text-gray-400 hover:text-red-500">
                         <i class="fas fa-sync-alt text-sm"></i>
                       </button>
                     </div>
@@ -128,10 +129,10 @@
                   <div class="w-2/3 flex flex-col items-end">
                     <div class=" justify-between flex flex-col items-end">
                       <div class="flex mb-9 space-x-3">
-                        <button @click="editCar(index)" class="text-gray-500 hover:text-blue-600">
+                        <button @click="window.location.href = `vehicleForm.html?id=${car.id}`" class="text-gray-500 hover:text-blue-600">
                           <i class="fas fa-edit"></i>
                         </button>
-                        <button @click="deleteCar(index)" class="text-gray-500 hover:text-red-600">
+                        <button @click="deleteCar(car.id)" class="text-gray-500 hover:text-red-600">
                           <i class="fas fa-trash-alt"></i>
                         </button>
                       </div>
@@ -151,7 +152,7 @@
         </template>
         <div
           class="bg-white rounded-lg shadow border-2 border-dashed border-gray-300 hover:border-red-400 transition-colors">
-          <button @click="addNewCar()" class="w-full p-2 flex justify-center">
+          <button @click="window.location.href = 'vehicleForm.html'" class="w-full p-2 flex justify-center">
             <i class="fas fa-plus-circle text-3xl text-red-500 m-2"></i>
             <p class="text-lg font-medium text-gray-700 m-2">Добавить новую машину</p>
           </button>
@@ -159,64 +160,4 @@
       </div>
     </div>
   </div>
-
-  <script>
-    function garageApp() {
-      return {
-        cars: [
-          {
-            brand: 'Toyota',
-            model: 'Camry',
-            vin: 'JT2BF22K1W0123456',
-            year: 2018,
-            mileage: 45000,
-            bodyType: 'Седан',
-            image: 'https://via.placeholder.com/400x200?text=Toyota+Camry'
-          },
-          {
-            brand: 'BMW',
-            model: 'X5',
-            vin: '5UXCR6C56KLL12345',
-            year: 2019,
-            mileage: 32000,
-            bodyType: 'Внедорожник',
-            image: ''
-          }
-        ],
-
-        addNewCar() {
-          this.cars.push({
-            brand: 'Новая марка',
-            model: 'Новая модель',
-            vin: 'XXXXXXXXXXXXXXX',
-            year: new Date().getFullYear(),
-            mileage: 0,
-            bodyType: 'Седан',
-            image: ''
-          });
-        },
-
-        editCar(index) {
-          const newBrand = prompt('Введите марку:', this.cars[index].brand);
-          const newModel = prompt('Введите модель:', this.cars[index].model);
-
-          if (newBrand && newModel) {
-            this.cars[index].brand = newBrand;
-            this.cars[index].model = newModel;
-          }
-        },
-
-        deleteCar(index) {
-          if (confirm('Вы уверены, что хотите удалить эту машину?')) {
-            this.cars.splice(index, 1);
-          }
-        },
-
-        copyToClipboard(text) {
-          navigator.clipboard.writeText(text);
-          alert('VIN скопирован в буфер обмена');
-        }
-      }
-    }
-  </script>
 </body>

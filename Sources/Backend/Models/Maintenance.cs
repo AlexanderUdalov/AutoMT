@@ -4,9 +4,12 @@ public class MaintenanceType
 {
     public int Id { get; set; }
 
+    public int Name { get; set; }
+    public string Icon { get; set; } = default!;
     public int PeriodMileage { get; set; }
     public int PeriodDays { get; set; }
     public bool IsCritical { get; set; }
+    public bool IsCustom { get; set; }
 }
 
 public class Maintenance

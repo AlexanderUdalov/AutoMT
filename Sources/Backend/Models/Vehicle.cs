@@ -14,7 +14,7 @@ public class Vehicle
 
     public int CurrentMileage { get; set; }
 
-    public int UserId { get; set; }
+    public ICollection<Maintenance> MaintenanceHistory { get; set; } = new List<Maintenance>();
 
-    public ICollection<Maintenance> Maintenances { get; set; } = new List<Maintenance>();
+    public ICollection<Maintenance> PlannedMaintenance { get; set; } = new List<Maintenance>();
 }
