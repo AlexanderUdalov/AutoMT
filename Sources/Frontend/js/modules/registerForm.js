@@ -1,4 +1,4 @@
-import { registerUser } from './api/auth.js';
+import { registerUser } from '../api/auth.js';
 
 export function registerForm() {
     return {
