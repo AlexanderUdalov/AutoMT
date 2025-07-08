@@ -80,6 +80,19 @@ namespace AutoMT.Controllers
                 return Results.Accepted($"/api/vehicles/{vehicleId}", existing);
             }).RequireAuthorization();
 
+            app.MapDelete("/api/vehicles/{vehicleId}", async (int vehicleId, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                var existing = db.Vehicles.First(v => v.UserId == userId.Value && v.Id == vehicleId);
+                if (existing is null) return Results.NotFound();
+
+                db.Vehicles.Remove(existing);
+                await db.SaveChangesAsync();
+                return Results.Ok();
+            }).RequireAuthorization();
+
         }
     }
 }

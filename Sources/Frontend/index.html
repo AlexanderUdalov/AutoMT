@@ -92,7 +92,7 @@
                                     <span class="text-sm text-gray-500 mr-2" x-text="currentCar.year"></span>
                                     <span class="text-sm text-gray-500">•</span>
                                     <span class="text-sm text-gray-500 ml-2"
-                                        x-text="`${currentCar.mileage} км`"></span>
+                                        x-text="`${currentCar.currentMileage} км`"></span>
                                     <button @click="updateMileage()" class="text-gray-400 hover:text-red-500 ml-2">
                                         <i class="fas fa-sync-alt text-sm"></i>
                                     </button>
@@ -140,7 +140,7 @@
 
                             <div class="flex items-center">
                                 <h2 class="text-lg font-bold text-gray-800 mr-4"
-                                    x-text="`${currentCar.mileage} км`">
+                                    x-text="`${currentCar.currentMileage} км`">
                                 </h2>
                                 <button @click="updateMileage()" class="text-gray-400 hover:text-red-500">
                                     <i class="fas fa-sync-alt text-md"></i>

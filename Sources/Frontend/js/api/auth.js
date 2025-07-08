@@ -1,4 +1,4 @@
-const API_URL = '/api';
+const API_URL = 'http://localhost:5291/api';
 
 export async function registerUser({ username, email, password }) {
   const res = await fetch(`${API_URL}/register`, {
@@ -8,11 +8,23 @@ export async function registerUser({ username, email, password }) {
   });
 
   if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data?.message || 'Registration error');
+    let message = 'Login error';
+
+    try {
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : null;
+
+      if (data?.message) {
+        message = data.message;
+      }
+    } catch (e) {
+    }
+
+    throw new Error(message);
   }
 
-  return await res.json();
+  const data = await res.json();
+  return data.token;
 }
 
 export async function loginUser({ username, password }) {
@@ -23,9 +35,21 @@ export async function loginUser({ username, password }) {
   });
 
   if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data?.message || 'Login error');
+    let message = 'Неверный логин/пароль';
+
+    try {
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : null;
+
+      if (data?.message) {
+        message = data.message;
+      }
+    } catch (e) {
+    }
+
+    throw new Error(message);
   }
 
-  return await res.json();
+  const data = await res.json();
+  return data.token;
 }

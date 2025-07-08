@@ -31,6 +31,6 @@ obj/
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,dotnetcore
 
-.db
-.db-shm
-.db-wal
+*.db
+*.db-shm
+*.db-wal

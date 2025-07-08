@@ -17,78 +17,6 @@ export function index() {
                 this.maintenanceItems = await getVehicleMaintenances(this.cars[this.currentCarIndex]);
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
-                if (this.currentCarIndex == 0) {
-                    this.maintenanceItems = [
-                        {
-                            id: 1,
-                            name: 'Замена моторного масла',
-                            type: 'oil_change',
-                            due_type: 'mileage',
-                            due_value: 80000,
-                            interval: 10000,
-                            last_changed: 70000,
-                            parts: [
-                                { id: 1, name: 'Масло моторное 5W-30', code: 'MOBIL-5W30-SYN', quantity: 5 },
-                                { id: 2, name: 'Масляный фильтр', code: 'TOYOTA-15678', quantity: 1 }
-                            ]
-                        },
-                        {
-                            id: 2,
-                            name: 'Замена воздушного фильтра',
-                            type: 'filter_change',
-                            due_type: 'mileage',
-                            due_value: 90000,
-                            interval: 15000,
-                            last_changed: 75000,
-                            parts: [
-                                { id: 3, name: 'Воздушный фильтр', code: 'MANN-C25138', quantity: 1 }
-                            ]
-                        }
-                    ]
-                }
-                else if (this.currentCarIndex == 1) {
-                    this.maintenanceItems = [
-                        {
-                            id: 3,
-                            name: 'Замена салонного фильтра',
-                            type: 'filter_change',
-                            due_type: 'days',
-                            due_value: 15,
-                            interval: 365,
-                            last_changed: '2023-11-01',
-                            parts: [
-                                { id: 4, name: 'Салонный фильтр угольный', code: 'FRAM-CF10934', quantity: 1 }
-                            ]
-                        },
-                        {
-                            id: 4,
-                            name: 'Проверка тормозной системы',
-                            type: 'inspection',
-                            due_type: 'mileage',
-                            due_value: 77000,
-                            interval: 5000,
-                            last_changed: 72000,
-                            parts: []
-                        }
-                    ]
-                }
-                else {
-                    this.maintenanceItems = [
-                        {
-                            id: 5,
-                            name: 'Замена ремня ГРМ',
-                            type: 'belt_change',
-                            due_type: 'mileage',
-                            due_value: 120000,
-                            interval: 60000,
-                            last_changed: 60000,
-                            parts: [
-                                { id: 5, name: 'Ремень ГРМ', code: 'GATES-TB275', quantity: 1 },
-                                { id: 6, name: 'Ролик натяжителя', code: 'GATES-T40070', quantity: 1 }
-                            ]
-                        }
-                    ]
-                }
             }
         },
 
@@ -97,32 +25,6 @@ export function index() {
                 this.cars = await getVehicles();
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
-                this.cars = [
-                    {
-                        id: 1,
-                        brand: 'Toyota',
-                        model: 'Camry',
-                        vin: 'JT3AC12R8M1000001',
-                        year: 2018,
-                        mileage: 45000
-                    },
-                    {
-                        id: 2,
-                        brand: 'Honda',
-                        model: 'Civic',
-                        vin: '2HGFG3B59DH500002',
-                        year: 2020,
-                        mileage: 23000
-                    },
-                    {
-                        id: 3,
-                        brand: 'BMW',
-                        model: 'X5',
-                        vin: '5UXKR0C5XF0P00003',
-                        year: 2017,
-                        mileage: 68000
-                    }
-                ];
             }
         },
 

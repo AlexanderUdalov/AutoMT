@@ -6,7 +6,6 @@ export function vehicleForm() {
         vehicleId: null,
         showMaintenanceList: false,
         car: {
-            id: null,
             brand: '',
             model: '',
             vin: '',
@@ -45,30 +44,16 @@ export function vehicleForm() {
         async loadVehicleData(id) {
             try {
                 const vehicle = await getVehicle(id);
-                this.car = { ...vehicle };
-                this.maintenanceItems = vehicle.plannedMaintenance.map(item => ({
-                    ...item,
-                    icon: this.getIconForMaintenanceType(item.type)
-                }));
+                this.car = vehicle;
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
                 alert('Не удалось загрузить данные');
             }
         },
 
-        // Остальные методы...
         async submitForm() {
             try {
-                const data = {
-                    ...this.car,
-                    plannedMaintenance: this.maintenanceItems.map(item => ({
-                        ...item,
-                        nextMileage: Number(item.lastCompletedMileage) + Number(item.interval)
-                    }))
-                };
-
-                await saveVehicle(data, this.isEditMode);
-                alert(`Автомобиль успешно ${this.isEditMode ? 'обновлён' : 'добавлен'}!`);
+                await saveVehicle(this.car, this.isEditMode);
                 window.location.href = 'garage.html';
             } catch (error) {
                 console.error('Ошибка:', error);
