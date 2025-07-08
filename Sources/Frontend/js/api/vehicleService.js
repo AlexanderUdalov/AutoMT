@@ -28,7 +28,3 @@ export async function getVehicles() {
         throw new Error('Ошибка загрузки');
     return await response.json();
 }
-
-export async function saveCar(car) {
-    // Реализация сохранения
-}
