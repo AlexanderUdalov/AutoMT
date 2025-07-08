@@ -13,6 +13,6 @@ namespace AutoMT.Data
 
         public DbSet<User> Users => Set<User>();
         public DbSet<Vehicle> Vehicles => Set<Vehicle>();
-        public DbSet<Maintenance> ServiceRecords => Set<Maintenance>();
+        public DbSet<Maintenance> Maintenances => Set<Maintenance>();
     }
 }

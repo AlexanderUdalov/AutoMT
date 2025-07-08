@@ -3,6 +3,7 @@ namespace AutoMT.Models;
 public class Vehicle
 {
     public int Id { get; set; }
+    public int UserId { get; set; }
 
     public string VIN { get; set; } = default!;
 
@@ -13,8 +14,4 @@ public class Vehicle
     public int Year { get; set; }
 
     public int CurrentMileage { get; set; }
-
-    public ICollection<Maintenance> MaintenanceHistory { get; set; } = new List<Maintenance>();
-
-    public ICollection<Maintenance> PlannedMaintenance { get; set; } = new List<Maintenance>();
 }

@@ -1,0 +1,38 @@
+PUT http://localhost:5291/api/vehicles/1 HTTP/1.1
+Content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwibmFtZSI6InRlc3QiLCJuYmYiOjE3NTE5OTI3NzIsImV4cCI6MTc1MjU5NzU3MiwiaWF0IjoxNzUxOTkyNzcyfQ.oUHSKEJehPQEEeGzna0QtJT0dfEpprlFPySRyNriRbE
+
+{
+    "CurrentMileage": "20000"
+}
+
+###
+GET http://localhost:5291/api/vehicles/1 HTTP/1.1
+Content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwibmFtZSI6InRlc3QiLCJuYmYiOjE3NTE5OTI3NzIsImV4cCI6MTc1MjU5NzU3MiwiaWF0IjoxNzUxOTkyNzcyfQ.oUHSKEJehPQEEeGzna0QtJT0dfEpprlFPySRyNriRbE
+
+{
+}
+
+###
+POST http://localhost:5291/api/vehicles HTTP/1.1
+Content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwibmFtZSI6InRlc3QiLCJuYmYiOjE3NTE5OTI3NzIsImV4cCI6MTc1MjU5NzU3MiwiaWF0IjoxNzUxOTkyNzcyfQ.oUHSKEJehPQEEeGzna0QtJT0dfEpprlFPySRyNriRbE
+
+{
+    "Brand": "Audi",
+    "Model": "A3",
+    "Year": "2015",
+    "CurrentMileage": "150000",
+    "VIN": "TestVIN"
+}
+
+###
+POST http://localhost:5291/api/register HTTP/1.1
+Content-type: application/json
+
+{
+    "Username": "test",
+    "Email": "Test",
+    "Password": "Test"
+}

@@ -15,13 +15,10 @@ public class MaintenanceType
 public class Maintenance
 {
     public int Id { get; set; }
-
+    public int VehicleId { get; set; }
+    
     public string Comment { get; set; } = default!;
     public int Mileage { get; set; }
     public DateTime Date { get; set; }
-
-    public ICollection<Part> Parts { get; set; } = new List<Part>();
-
     public MaintenanceType Type { get; set; } = default!;
-    public int VehicleId { get; set; }
 }
