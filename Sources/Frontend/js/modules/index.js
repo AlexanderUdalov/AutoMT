@@ -92,13 +92,15 @@ export function index() {
         },
 
         getNextMileage(item) {
-            var type = this.getMaintenanceType(item.id);
+            var type = this.getMaintenanceType(item.typeId);
+            
+                console.error('PISOS:', type, item.id, item);
             return item.mileage + type.period;
         },
 
         getProgress(item) {
             const passed = this.currentCar.mileage - item.mileage;
-            var type = this.getMaintenanceType(item.id);
+            var type = this.getMaintenanceType(item.typeId);
             return Math.min(100, Math.max(0, (passed / type.period) * 100));
         },
 

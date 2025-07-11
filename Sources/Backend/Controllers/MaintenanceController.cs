@@ -1,4 +1,6 @@
 using AutoMT.Data;
+using AutoMT.DTOs;
+using AutoMT.Models;
 using AutoMT.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +21,8 @@ namespace AutoMT.Controllers
 
                     var records = await db.Maintenances
                         .Where(r => r.VehicleId == vehicleId)
+                        .GroupBy(r => r.TypeId) // Группируем по типу работ
+                        .Select(g => g.OrderByDescending(r => r.Mileage).FirstOrDefault()) // В каждой группе берем запись с максимальным пробегом
                         .ToListAsync();
 
                     return Results.Ok(records);
@@ -29,6 +33,27 @@ namespace AutoMT.Controllers
                 var maintenanceTypes = await db.MaintenanceTypes.ToListAsync();
                 return Results.Ok(maintenanceTypes);
             }).RequireAuthorization();
+
+            app.MapPost("/api/maintenance/{vehicleId}", async (int vehicleId, MaintenanceHistoryRecordDTO maintenance, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+                {
+                    var userId = userCtx.GetUserId(ctx);
+                    if (userId is null) return Results.Unauthorized();
+
+                    var vehicle = await db.Vehicles.FindAsync(vehicleId);
+                    if (vehicle == null) return Results.BadRequest();
+                    if (vehicle.UserId != userId) return Results.Forbid();
+
+                    var Maintenance = new MaintenanceRecord
+                    {
+                        VehicleId = vehicleId,
+                        TypeId = maintenance.TypeId,
+                        Mileage = maintenance.Mileage
+                    };
+                    db.Maintenances.Add(Maintenance);
+
+                    await db.SaveChangesAsync();
+                    return Results.Created($"/api/maintenance/{vehicleId}/{Maintenance.Id}", Maintenance);
+                }).RequireAuthorization();
         }
     }
 }
