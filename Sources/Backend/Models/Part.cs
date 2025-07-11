@@ -1,14 +1,15 @@
 namespace AutoMT.Models;
 
-public enum PartType
+public class PartType
 {
-    
+    public int Id { get; set; }
+    public string Name { get; set; } = default!;
 }
 
 public class Part
 {
-    int Id { get; set; }
-    PartType Type { get; set; }
-    string Article { get; set; } = default!;
-    string Brand { get; set; } = default!;
+    public int Id { get; set; }
+    public int TypeId { get; set; }
+    public string Article { get; set; } = default!;
+    public string Brand { get; set; } = default!;
 }

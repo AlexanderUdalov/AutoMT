@@ -30,7 +30,26 @@ namespace AutoMT.Controllers
 
             app.MapGet("/api/maintenance/types", async (AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
-                var maintenanceTypes = await db.MaintenanceTypes.ToListAsync();
+                var maintenanceTypes = await db.MaintenanceTypes
+                    .Select(x => new MaintenanceTypeDTO
+                    {
+                        Id = x.Id,
+                        Icon = x.Icon,
+                        Name = x.Name,
+                        Period = x.Period,
+                        Parts = db.MaintenanceRequiredPartTypes
+                            .Where(mrp => mrp.MaintenanceTypeId == x.Id)
+                            .Join(db.PartTypes,
+                                mrp => mrp.PartTypeId,
+                                pt => pt.Id,
+                                (mrp, pt) => new MaintenancePartTypeDTO
+                                {
+                                    Id = pt.Id,
+                                    Name = pt.Name
+                                })
+                            .ToList()
+                    }).ToListAsync();
+
                 return Results.Ok(maintenanceTypes);
             }).RequireAuthorization();
 

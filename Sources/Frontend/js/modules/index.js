@@ -93,8 +93,6 @@ export function index() {
 
         getNextMileage(item) {
             var type = this.getMaintenanceType(item.typeId);
-            
-                console.error('PISOS:', type, item.id, item);
             return item.mileage + type.period;
         },
 
