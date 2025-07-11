@@ -38,7 +38,7 @@ export async function saveVehicle(data, isEdit) {
 
     if (response.status === 401) {
         localStorage.removeItem('token');
-        // window.location.href = 'login.html';
+        window.location.href = 'login.html';
         return;
     }
 

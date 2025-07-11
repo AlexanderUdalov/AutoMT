@@ -1,4 +1,5 @@
 import { getVehicle, saveVehicle } from '../api/vehicleService.js';
+import { getMaintenanceTypes } from '../api/maintenanceService.js';
 
 export function vehicleForm() {
     return {
@@ -22,23 +23,8 @@ export function vehicleForm() {
                 this.isEditMode = true;
                 await this.loadVehicleData(this.vehicleId);
             } else {
-                this.maintenanceItems = this.getDefaultMaintenanceItems();
+                this.maintenanceItems = await getMaintenanceTypes();
             }
-        },
-
-        getDefaultMaintenanceItems() {
-            return [
-                { type: 'Замена масла двигателя', interval: 10000, lastCompletedMileage: 0, icon: 'fas fa-oil-can' },
-                { type: 'Замена масла в коробке передач', interval: 60000, lastCompletedMileage: 0, icon: 'fas fa-cog' },
-                { type: 'Замена воздушного фильтра', interval: 15000, lastCompletedMileage: 0, icon: 'fas fa-wind' },
-                { type: 'Замена салонного фильтра', interval: 20000, lastCompletedMileage: 0, icon: 'fas fa-car' },
-                { type: 'Замена топливного фильтра', interval: 30000, lastCompletedMileage: 0, icon: 'fas fa-gas-pump' },
-                { type: 'Замена свечей зажигания', interval: 30000, lastCompletedMileage: 0, icon: 'fas fa-bolt' },
-                { type: 'Замена тормозной жидкости', interval: 40000, lastCompletedMileage: 0, icon: 'fas fa-tint' },
-                { type: 'Замена ремня ГРМ', interval: 90000, lastCompletedMileage: 0, icon: 'fas fa-cogs' },
-                { type: 'Замена охлаждающей жидкости', interval: 50000, lastCompletedMileage: 0, icon: 'fas fa-temperature-low' },
-                { type: 'Диагностика подвески', interval: 15000, lastCompletedMileage: 0, icon: 'fas fa-car-side' }
-            ];
         },
 
         async loadVehicleData(id) {
@@ -51,9 +37,22 @@ export function vehicleForm() {
             }
         },
 
+        removeMaintenanceItem(index) {
+            this.maintenanceItems.splice(index, 1)
+        },
+
         async submitForm() {
             try {
-                await saveVehicle(this.car, this.isEditMode);
+                const payload = {
+                    ...this.car,
+                    maintenanceHistory: this.maintenanceItems
+                        .map(item => ({
+                            typeId: item.id,
+                            mileage: Number(item.mileage ?? 0)
+                        }))
+                };
+
+                await saveVehicle(payload, this.isEditMode);
                 window.location.href = 'garage.html';
             } catch (error) {
                 console.error('Ошибка:', error);

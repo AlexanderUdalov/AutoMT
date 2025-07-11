@@ -1,20 +1,22 @@
-import { getVehicleMaintenances } from "../api/maintenanceService.js";
+import { getVehicleMaintenances, getMaintenanceTypes } from "../api/maintenanceService.js";
 import { getVehicles } from "../api/vehicleService.js";
 
 export function index() {
     return {
         cars: [],
+        maintenanceTypes: [],
         maintenanceItems: [],
         currentCarIndex: 0,
 
-        init() {
-            this.initVehicles()
-            this.initMaintenances()
+        async init() {
+            await this.initVehicles();
+            await this.initMaintenances();
         },
 
         async initMaintenances() {
             try {
-                this.maintenanceItems = await getVehicleMaintenances(this.cars[this.currentCarIndex]);
+                this.maintenanceTypes = await getMaintenanceTypes();
+                this.maintenanceItems = await getVehicleMaintenances(this.cars[this.currentCarIndex].id);
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
             }
@@ -72,96 +74,56 @@ export function index() {
                 return aRemaining - bRemaining;
             });
         },
+        
+        getMaintenanceType(index) {
+            return this.maintenanceTypes.find(item => item.id == index); 
+        },
 
-        // Методы
-        getIconClass(type) {
-            const icons = {
-                'oil_change': 'fas fa-oil-can',
-                'filter_change': 'fas fa-filter',
-                'inspection': 'fas fa-search',
-                'belt_change': 'fas fa-cog',
-                'default': 'fas fa-tools'
-            };
-            return icons[type] || icons.default;
+        getIntervalText(index) {
+            return `Каждые ${this.getMaintenanceType(index).period} км`;
+        },
+
+        getShortIntervalText(index) {
+            return `${this.getMaintenanceType(index).period} км`;
+        },
+
+        getShortLastChangedText(item) {
+            return `${item.mileage} км`;
+        },
+
+        getNextMileage(item) {
+            var type = this.getMaintenanceType(item.id);
+            return item.mileage + type.period;
         },
 
         getProgress(item) {
-            if (item.due_type === 'mileage') {
-                const passed = this.currentCar.mileage - item.last_changed;
-                return Math.min(100, Math.max(0, (passed / item.interval) * 100));
-            } else {
-                const lastChangedDate = new Date(item.last_changed);
-                const today = new Date();
-                const daysPassed = Math.floor((today - lastChangedDate) / (1000 * 60 * 60 * 24));
-                return Math.min(100, Math.max(0, (daysPassed / item.interval) * 100));
-            }
+            const passed = this.currentCar.mileage - item.mileage;
+            var type = this.getMaintenanceType(item.id);
+            return Math.min(100, Math.max(0, (passed / type.period) * 100));
         },
 
         getRemainingValue(item) {
-            if (item.due_type === 'mileage') {
-                return item.due_value - this.currentCar.mileage;
-            } else {
-                return item.due_value;
-            }
+            return this.getNextMileage(item) - this.currentCar.mileage;
         },
 
         isOverdue(item) {
-            if (item.due_type === 'mileage') {
-                return this.currentCar.mileage >= item.due_value;
-            } else {
-                return item.due_value <= 0;
-            }
+            return this.currentCar.mileage >= this.getNextMileage(item);
+
         },
 
         isDueSoon(item) {
             const remaining = this.getRemainingValue(item);
-            if (item.due_type === 'mileage') {
-                return remaining <= 3000; // 1000 км до ТО
-            } else {
-                return remaining <= 7; // 7 дней до ТО
-            }
+            return remaining <= 3000;
         },
 
         getDueText(item) {
-            if (item.due_type === 'mileage') {
-                const remaining = item.due_value - this.currentCar.mileage;
-                return remaining > 0 ? `Осталось ${remaining} км` : `Просрочено на ${-remaining} км`;
-            } else {
-                return item.due_value > 0 ? `Осталось ${item.due_value} дней` : `Просрочено на ${-item.due_value} дней`;
-            }
+            const remaining = this.getNextMileage(item) - this.currentCar.mileage;
+            return remaining > 0 ? `Осталось ${remaining} км` : `Просрочено на ${-remaining} км`;
         },
 
         getShortDueText(item) {
-            if (item.due_type === 'mileage') {
-                const remaining = item.due_value - this.currentCar.mileage;
-                return remaining > 0 ? `${remaining} км` : `+${-remaining} км`;
-            } else {
-                return item.due_value > 0 ? `${item.due_value} дн.` : `+${-item.due_value} дн.`;
-            }
-        },
-
-        getIntervalText(item) {
-            return item.due_type === 'mileage'
-                ? `Каждые ${item.interval} км`
-                : `Каждые ${item.interval} дней`;
-        },
-
-        getLastChangedText(item) {
-            if (item.due_type === 'mileage') {
-                return `Последняя замена: ${item.last_changed} км`;
-            } else {
-                const date = new Date(item.last_changed);
-                return `Последняя замена: ${date.toLocaleDateString()}`;
-            }
-        },
-
-        getShortLastChangedText(item) {
-            if (item.due_type === 'mileage') {
-                return `@${item.last_changed} км`;
-            } else {
-                const date = new Date(item.last_changed);
-                return `@${date.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' })}`;
-            }
+            const remaining = this.getNextMileage(item) - this.currentCar.mileage;
+            return remaining > 0 ? `${remaining} км` : `+${-remaining} км`;
         },
 
         updateMileage() {

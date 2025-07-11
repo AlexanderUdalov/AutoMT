@@ -43,12 +43,29 @@ namespace AutoMT.Controllers
                     Brand = vehicleDto.Brand,
                     Model = vehicleDto.Model,
                     Year = vehicleDto.Year,
-                    CurrentMileage = vehicleDto.CurrentMileage,
+                    Mileage = vehicleDto.Mileage,
                     VIN = vehicleDto.VIN,
                     UserId = userId.Value
                 };
                 db.Vehicles.Add(vehicle);
                 await db.SaveChangesAsync();
+
+                if (vehicleDto.MaintenanceHistory != null)
+                {
+                    foreach (var entry in vehicleDto.MaintenanceHistory)
+                    {
+                        var record = new MaintenanceRecord
+                        {
+                            VehicleId = vehicle.Id,
+                            TypeId = entry.TypeId,
+                            Mileage = entry.Mileage
+                        };
+
+                        db.Maintenances.Add(record);
+                    }
+                await db.SaveChangesAsync();
+                }
+
 
                 return Results.Created($"/api/vehicles/{vehicle.Id}", vehicle);
             }).RequireAuthorization();
@@ -70,8 +87,8 @@ namespace AutoMT.Controllers
                 if (vehicleDto.Year.HasValue)
                     existing.Year = vehicleDto.Year.Value;
 
-                if (vehicleDto.CurrentMileage.HasValue)
-                    existing.CurrentMileage = vehicleDto.CurrentMileage.Value;
+                if (vehicleDto.Mileage.HasValue)
+                    existing.Mileage = vehicleDto.Mileage.Value;
 
                 if (!string.IsNullOrWhiteSpace(vehicleDto.VIN))
                     existing.VIN = vehicleDto.VIN;

@@ -10,7 +10,7 @@ public class VehicleUpdateDTO
 
     public int? Year { get; set; }
 
-    public int? CurrentMileage { get; set; }
+    public int? Mileage { get; set; }
 }
 
 public class VehicleCreateDTO
@@ -23,5 +23,7 @@ public class VehicleCreateDTO
 
     public int Year { get; set; }
 
-    public int CurrentMileage { get; set; }
+    public int Mileage { get; set; }
+
+    public List<MaintenanceHistoryRecordDTO> MaintenanceHistory { get; set; } = default!;
 }

@@ -23,6 +23,12 @@ namespace AutoMT.Controllers
 
                     return Results.Ok(records);
                 }).RequireAuthorization();
+
+            app.MapGet("/api/maintenance/types", async (AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var maintenanceTypes = await db.MaintenanceTypes.ToListAsync();
+                return Results.Ok(maintenanceTypes);
+            }).RequireAuthorization();
         }
     }
 }

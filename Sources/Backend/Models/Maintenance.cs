@@ -4,21 +4,16 @@ public class MaintenanceType
 {
     public int Id { get; set; }
 
-    public int Name { get; set; }
-    public string Icon { get; set; } = default!;
-    public int PeriodMileage { get; set; }
-    public int PeriodDays { get; set; }
-    public bool IsCritical { get; set; }
-    public bool IsCustom { get; set; }
+    public string Name { get; set; } = default!;
+    public string? Icon { get; set; } = default!;
+    public int? Period { get; set; }
 }
 
-public class Maintenance
+public class MaintenanceRecord
 {
     public int Id { get; set; }
-    public int VehicleId { get; set; }
     
-    public string Comment { get; set; } = default!;
+    public int VehicleId { get; set; }
+    public int TypeId { get; set; }
     public int Mileage { get; set; }
-    public DateTime Date { get; set; }
-    public MaintenanceType Type { get; set; } = default!;
 }

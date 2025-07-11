@@ -19,7 +19,6 @@ namespace AutoMT.Controllers
                 var user = new User
                 {
                     Name = dto.Username,
-                    Email = dto.Email,
                     PasswordHash = hasher.HashPassword(dto.Username, dto.Password)
                 };
 
