@@ -7,10 +7,12 @@ export function index() {
         maintenanceTypes: [],
         maintenanceItems: [],
         currentCarIndex: 0,
+        inited: false,
 
         async init() {
             await this.initVehicles();
             await this.initMaintenances();
+            this.inited = true;
         },
 
         async initMaintenances() {
@@ -74,9 +76,9 @@ export function index() {
                 return aRemaining - bRemaining;
             });
         },
-        
+
         getMaintenanceType(index) {
-            return this.maintenanceTypes.find(item => item.id == index); 
+            return this.maintenanceTypes.find(item => item.id == index);
         },
 
         getIntervalText(index) {

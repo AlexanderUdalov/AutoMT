@@ -4,10 +4,12 @@ import { deleteVehicle } from '../api/vehicleService.js';
 export function garage() {
     return {
         cars: [],
+        inited: false,
 
         async init() {
             try {
                 this.cars = await getVehicles();
+                this.inited = true;
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
             }
