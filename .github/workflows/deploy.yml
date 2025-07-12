@@ -44,8 +44,8 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
         script: |
-          sudo systemctl stop automt
+          sudo systemctl stop automt-backend
           sudo cp -r /home/${{ secrets.VPS_USER }}/deploy-temp/Backend/* /var/www/automt/backend/
           sudo cp -r /home/${{ secrets.VPS_USER }}/deploy-temp/Frontend/* /var/www/automt/frontend/
           sudo chown -R www-data:www-data /var/www/automt/frontend
-          sudo systemctl start automt
+          sudo systemctl start automt-backend
