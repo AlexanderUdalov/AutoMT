@@ -21,7 +21,7 @@ jobs:
     - name: Publish Backend
       run: |
         cd Sources/Backend
-        dotnet publish -c Release -o ../../Publish/Backend
+        dotnet publish -c Release -r linux-x64 --self-contained true -o ../../Publish/Backend
 
     - name: Copy Frontend
       run: |
