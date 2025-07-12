@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5291/api/maintenance';
+const API_URL = '/api/maintenance';
 
 export async function getVehicleMaintenances(vehicleId) {
     const token = localStorage.getItem('token');
