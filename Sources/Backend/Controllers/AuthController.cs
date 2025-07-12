@@ -11,7 +11,8 @@ namespace AutoMT.Controllers
     {
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/register", async (RegisterDTO dto, AppDbContext db, JwtService jwtService, PasswordHasher<string> hasher) =>
+            app.MapGet("/api/auth/validate", () => Results.Ok()).RequireAuthorization();
+            app.MapPost("/api/auth/register", async (RegisterDTO dto, AppDbContext db, JwtService jwtService, PasswordHasher<string> hasher) =>
             {
                 if (await db.Users.AnyAsync(u => u.Name == dto.Username))
                     return Results.BadRequest("Username already exists");
@@ -29,7 +30,7 @@ namespace AutoMT.Controllers
                 return Results.Ok(new { token });
             });
 
-            app.MapPost("/api/login", async (LoginDTO dto, AppDbContext db, JwtService jwtService, PasswordHasher<string> hasher) =>
+            app.MapPost("/api/auth/login", async (LoginDTO dto, AppDbContext db, JwtService jwtService, PasswordHasher<string> hasher) =>
             {
                 var user = await db.Users.FirstOrDefaultAsync(u => u.Name == dto.Username);
                 if (user is null)

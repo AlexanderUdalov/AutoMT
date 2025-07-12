@@ -1,4 +1,48 @@
-const API_URL = '/api';
+import { SERVER_URL } from "./config.js";
+
+const API_URL = `${SERVER_URL}/api/auth`;
+
+export function getToken() {
+  return localStorage.getItem('token');
+}
+
+export function createJsonHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${getToken()}`
+  };
+}
+
+export async function isAuthenticated() {
+  const token = getToken();
+  if (!token) return false;
+
+  try {
+    const response = await fetch(`${API_URL}/validate`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Token validation error:', error);
+    return false;
+  }
+};
+
+export function redirectToLogin() {
+  localStorage.removeItem('token');
+  window.location.href = './login.html';
+};
+
+export async function checkAuth() {
+  if (!await isAuthenticated()) {
+    redirectToLogin();
+    throw new Error('Not authenticated')
+  }
+};
 
 export async function registerUser({ username, email, password }) {
   const res = await fetch(`${API_URL}/register`, {
@@ -8,7 +52,7 @@ export async function registerUser({ username, email, password }) {
   });
 
   if (!res.ok) {
-    let message = 'Login error';
+    let message = 'Ошибка регистрации';
 
     try {
       const text = await res.text();
