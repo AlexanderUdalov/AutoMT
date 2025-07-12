@@ -1,0 +1,51 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Publish Backend
+      run: |
+        cd Sources/Backend
+        dotnet publish -c Release -o ../../Publish/Backend
+
+    - name: Copy Frontend
+      run: |
+        mkdir -p Publish/Frontend
+        cp -r Sources/Frontend/* Publish/Frontend/
+
+    - name: Upload to VPS via SCP
+      uses: appleboy/scp-action@v0.1.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_KEY }}
+        source: "Publish/*"
+        target: "/home/${{ secrets.VPS_USER }}/deploy-temp"
+
+    - name: Deploy remotely via SSH
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_KEY }}
+        script: |
+          sudo systemctl stop automt
+          sudo cp -r /home/${{ secrets.VPS_USER }}/deploy-temp/Backend/* /var/www/automt/backend/
+          sudo cp -r /home/${{ secrets.VPS_USER }}/deploy-temp/Frontend/* /var/www/automt/frontend/
+          sudo chown -R www-data:www-data /var/www/automt/frontend
+          sudo systemctl start automt
