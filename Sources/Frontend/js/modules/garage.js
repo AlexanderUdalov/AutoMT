@@ -3,6 +3,8 @@ import { getVehicles, deleteVehicle, saveVehicle } from '../api/vehicleService.j
 export function garage() {
     return {
         cars: [],
+        openModal: false,
+        carToDelete: {},
         inited: false,
 
         async init() {
@@ -25,11 +27,17 @@ export function garage() {
             }
         },
 
-        deleteCar(index) {
-            if (confirm('Вы уверены, что хотите удалить эту машину?')) {
-                deleteVehicle(index);
-                this.init();
-            }
+        openDeleteModal(car) {
+            this.carToDelete = car;
+            this.openModal = true;
+        },
+
+        async deleteCar() {
+            await deleteVehicle(this.carToDelete.id);
+            this.carToDelete = {};
+            this.openModal = false;
+            await this.init();
+
         },
 
         copied: false,
