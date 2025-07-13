@@ -3,6 +3,7 @@ using AutoMT.DTOs;
 using AutoMT.Models;
 using AutoMT.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutoMT.Controllers
@@ -12,6 +13,71 @@ namespace AutoMT.Controllers
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapGet("/api/auth/validate", () => Results.Ok()).RequireAuthorization();
+            app.MapPost("/api/auth/changeUsername", async ([FromBody] string newUsername, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                var isTaken = await db.Users.AnyAsync(u => u.Name == newUsername);
+                if (isTaken)
+                    return Results.Conflict();
+
+                var user = await db.Users.FindAsync(userId);
+                if (user is null)
+                    return Results.NotFound();
+
+                user.Name = newUsername;
+                await db.SaveChangesAsync();
+
+                return Results.Ok();
+            }).RequireAuthorization();
+
+            app.MapPost("/api/auth/changePassword", async ([FromBody] string newPassword, AppDbContext db, JwtService jwtService, PasswordHasher<string> hasher, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                var user = await db.Users.FindAsync(userId);
+                if (user is null)
+                    return Results.NotFound();
+
+                user.PasswordHash = hasher.HashPassword(user.Name, newPassword);
+                await db.SaveChangesAsync();
+
+                return Results.Ok();
+            }).RequireAuthorization();
+
+            app.MapPost("/api/auth/checkCurrentPassword", async ([FromBody] string password, AppDbContext db, PasswordHasher<string> hasher, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                var user = await db.Users.FindAsync(userId);
+                if (user is null)
+                    return Results.NotFound();
+
+                var result = hasher.VerifyHashedPassword(user.Name, user.PasswordHash, password);
+                if (result == PasswordVerificationResult.Failed)
+                    return Results.BadRequest();
+
+                return Results.Ok();
+            }).RequireAuthorization();
+
+            app.MapDelete("/api/auth/delete", async (AppDbContext db, PasswordHasher<string> hasher, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                var user = await db.Users.FindAsync(userId);
+                if (user is null)
+                    return Results.NotFound();
+
+                db.Users.Remove(user);
+                await db.SaveChangesAsync();
+
+                return Results.Ok();
+            }).RequireAuthorization();
+
             app.MapPost("/api/auth/register", async (RegisterDTO dto, AppDbContext db, JwtService jwtService, PasswordHasher<string> hasher) =>
             {
                 if (await db.Users.AnyAsync(u => u.Name == dto.Username))

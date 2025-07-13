@@ -13,6 +13,7 @@ export function registerForm() {
                 });
 
                 localStorage.setItem('token', data);
+                localStorage.setItem('username', this.username);
                 window.location.href = 'index.html';
             } catch (e) {
                 this.error = e.message;

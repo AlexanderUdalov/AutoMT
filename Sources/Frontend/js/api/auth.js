@@ -37,6 +37,11 @@ export function redirectToLogin() {
   window.location.href = './login.html';
 };
 
+export function redirectToRegistration() {
+  localStorage.removeItem('token');
+  window.location.href = './register.html';
+};
+
 export async function checkAuth() {
   if (!await isAuthenticated()) {
     redirectToLogin();
@@ -96,4 +101,45 @@ export async function loginUser({ username, password }) {
 
   const data = await res.json();
   return data.token;
+}
+
+export async function changeUsername(username) {
+  const res = await fetch(`${API_URL}/changeUsername`, {
+    method: 'POST',
+    headers: createJsonHeaders(),
+    body: JSON.stringify(username)
+  });
+
+  return res;
+}
+
+export async function changePassword(password) {
+  const res = await fetch(`${API_URL}/changePassword`, {
+    method: 'POST',
+    headers: createJsonHeaders(),
+    body: JSON.stringify(password)
+  });
+
+  return res;
+}
+
+export async function checkCurrentPassword(password) {
+  const res = await fetch(`${API_URL}/checkCurrentPassword`, {
+    method: 'POST',
+    headers: createJsonHeaders(),
+    body: JSON.stringify(password)
+  });
+
+  return res;
+}
+
+export async function deleteUser() {
+    const res = await fetch(`${API_URL}/delete`, {
+        method: 'DELETE',
+        headers: createJsonHeaders()
+    });
+
+    if (!res.ok)
+        throw new Error(`Error: ${res.status}`);
+    return res;
 }
