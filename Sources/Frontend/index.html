@@ -206,8 +206,8 @@
                                                 <span x-text="getShortIntervalText(item.typeId)" class="ml-1"></span>
                                             </div>
                                             <div>
-                                                <span class="font-medium">Последняя замена на</span>
-                                                <span x-text="getShortLastChangedText(item)" class="ml-1"></span>
+                                                <span class="font-medium">Выполнено на</span>
+                                                <span x-text="getShortLastChangedText(item)"></span>
                                             </div>
                                         </div>
 
@@ -226,15 +226,15 @@
                                                     <button
                                                         @click="location.href = `./maintenanceForm.html?maintenanceId=${item.id}&vehicleId=${currentCar.id}`"
                                                         class="bg-red-500 rounded-lg flex items-center text-sm text-white">
-                                                        <div class="mt-2 mb-2 ml-4 mr-4">
-                                                            <i class="fa-solid fa-check mr-2"></i>
-                                                            <span class="mr-2">Отметить выполненным</span>
+                                                        <div class="flex items-center mt-2 mb-2 ml-4 mr-4">
+                                                            <i class="fa-solid fa-check"></i>
+                                                            <span class="hidden md:block ml-2 mr-2">Отметить
+                                                                выполненным</span>
                                                         </div>
                                                     </button>
                                                 </div>
                                             </div>
-
-                                            <div x-show="showParts" class="bg-gray-50 rounded p-2">
+                                            <div x-show="showParts" class="border-t border-gray-200 bg-gray-50 rounded p-2">
                                                 <template
                                                     x-if="getMaintenanceType(item.typeId).parts && getMaintenanceType(item.typeId).parts.length > 0">
                                                     <template x-for="part in getMaintenanceType(item.typeId).parts"
