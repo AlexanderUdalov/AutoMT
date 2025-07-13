@@ -11,6 +11,8 @@ public class VehicleUpdateDTO
     public int? Year { get; set; }
 
     public int? Mileage { get; set; }
+
+    public bool? IsDefault { get; set; }
 }
 
 public class VehicleCreateDTO

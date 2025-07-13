@@ -17,6 +17,7 @@ namespace AutoMT.Controllers
 
                 var vehicles = await db.Vehicles
                     .Where(v => v.UserId == userId)
+                    .OrderByDescending(x => x.IsDefault)
                     .ToListAsync();
 
                 return Results.Ok(vehicles);
@@ -45,7 +46,8 @@ namespace AutoMT.Controllers
                     Year = vehicleDto.Year,
                     Mileage = vehicleDto.Mileage,
                     VIN = vehicleDto.VIN,
-                    UserId = userId.Value
+                    UserId = userId.Value,
+                    IsDefault = !await db.Vehicles.AnyAsync(v => v.UserId == userId.Value)
                 };
                 db.Vehicles.Add(vehicle);
                 await db.SaveChangesAsync();
@@ -63,7 +65,7 @@ namespace AutoMT.Controllers
 
                         db.Maintenances.Add(record);
                     }
-                await db.SaveChangesAsync();
+                    await db.SaveChangesAsync();
                 }
 
 
@@ -89,6 +91,16 @@ namespace AutoMT.Controllers
 
                 if (vehicleDto.Mileage.HasValue)
                     existing.Mileage = vehicleDto.Mileage.Value;
+
+                if (vehicleDto.IsDefault.HasValue && vehicleDto.IsDefault.Value)
+                {
+                    await db.Vehicles.ForEachAsync(x =>
+                    {
+                        if (x.UserId == userId.Value)
+                            x.IsDefault = false;
+                    });
+                    existing.IsDefault = vehicleDto.IsDefault.Value;
+                }
 
                 if (!string.IsNullOrWhiteSpace(vehicleDto.VIN))
                     existing.VIN = vehicleDto.VIN;

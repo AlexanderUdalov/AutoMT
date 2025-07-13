@@ -1,5 +1,4 @@
-import { getVehicles } from '../api/vehicleService.js';
-import { deleteVehicle } from '../api/vehicleService.js';
+import { getVehicles, deleteVehicle, saveVehicle } from '../api/vehicleService.js';
 
 export function garage() {
     return {
@@ -12,6 +11,17 @@ export function garage() {
                 this.inited = true;
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
+            }
+        },
+
+        async setAsDefault(index) {
+            try {
+                const res = await saveVehicle({ id: index, isDefault: true }, true);
+                if (res) {
+                    await this.init();
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
             }
         },
 

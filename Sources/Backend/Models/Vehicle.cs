@@ -14,4 +14,6 @@ public class Vehicle
     public int Year { get; set; }
 
     public int Mileage { get; set; }
+
+    public bool IsDefault { get; set; }
 }
