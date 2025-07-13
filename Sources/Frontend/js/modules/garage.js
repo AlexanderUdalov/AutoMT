@@ -1,4 +1,4 @@
-import { getVehicles, deleteVehicle, saveVehicle } from '../api/vehicleService.js';
+import { getVehicles, deleteVehicle, saveVehicle, uploadImage } from '../api/vehicleService.js';
 
 export function garage() {
     return {
@@ -46,6 +46,19 @@ export function garage() {
                 this.copied = true;
                 setTimeout(() => this.copied = false, 1500);
             });
-        }
+        },
+
+
+        currentUploadCarId: null,
+        startImageUpload(carId) {
+            this.currentUploadCarId = carId;
+            this.$refs.fileInput.click();
+        },
+
+        async handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file || !this.currentUploadCarId) return;
+            await uploadImage(this.currentUploadCarId, file);
+        },
     };
 }

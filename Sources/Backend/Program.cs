@@ -52,6 +52,8 @@ using (var scope = app.Services.CreateScope())
 }
 app.UseCors("AllowAll");
 app.UseAuthentication();
+app.UseRouting();
+app.UseStaticFiles();
 app.UseAuthorization();
 app.MapAuthEndpoints();
 app.MapVehiclesEndpoints();

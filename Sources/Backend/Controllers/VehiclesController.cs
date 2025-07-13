@@ -2,6 +2,7 @@ using AutoMT.Data;
 using AutoMT.DTOs;
 using AutoMT.Models;
 using AutoMT.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutoMT.Controllers
@@ -70,6 +71,36 @@ namespace AutoMT.Controllers
 
 
                 return Results.Created($"/api/vehicles/{vehicle.Id}", vehicle);
+            }).RequireAuthorization();
+
+            app.MapPost("/api/vehicles/upload/{id}", async (int id, [FromForm] IFormFile image, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            {
+                Console.WriteLine("Content-Type: " + ctx.Request.ContentType);
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                if (image == null || image.Length == 0)
+                    return Results.BadRequest();
+
+                var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.UserId == userId.Value && v.Id == id);
+                if (vehicle is null) return Results.NotFound();
+
+                var uploadsFolder = Path.Combine("wwwroot", "uploads", "vehicles", id.ToString());
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+
+                vehicle.ImageUrl = $"/uploads/vehicles/{id}/{fileName}";
+                await db.SaveChangesAsync();
+
+                return Results.Ok();
             }).RequireAuthorization();
 
             app.MapPut("/api/vehicles/{vehicleId}", async (int vehicleId, VehicleUpdateDTO vehicleDto, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>

@@ -1,5 +1,5 @@
 import { SERVER_URL } from "./config.js";
-import { createJsonHeaders } from './auth.js';
+import { createJsonHeaders, getToken } from './auth.js';
 
 const API_URL = `${SERVER_URL}/api/vehicles`;
 
@@ -49,4 +49,25 @@ export async function deleteVehicle(id) {
     if (!response.ok)
         throw new Error(`Error: ${response.status}`);
     return;
+}
+
+export async function uploadImage(id, file) {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+        const response = await fetch(`${API_URL}/upload/${id}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            alert("Ошибка загрузки изображения");
+        }
+    } catch (error) {
+        console.error("Ошибка при загрузке", error);
+    }
 }

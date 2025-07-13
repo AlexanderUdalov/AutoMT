@@ -16,4 +16,5 @@ public class Vehicle
     public int Mileage { get; set; }
 
     public bool IsDefault { get; set; }
+    public string? ImageUrl { get; set; } = default!;
 }
