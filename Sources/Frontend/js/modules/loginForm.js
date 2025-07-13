@@ -9,7 +9,6 @@ export function loginForm() {
       try {
         const data = await loginUser({
           username: this.username,
-          email: this.email,
           password: this.password
         });
 
