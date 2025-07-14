@@ -26,7 +26,7 @@ namespace AutoMT.Controllers
                         .ToListAsync();
 
                     return Results.Ok(records);
-                }).RequireAuthorization();
+                }).RequireAuthorization().DisableAntiforgery();
 
             app.MapGet("/api/maintenance/types", async (AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -51,7 +51,7 @@ namespace AutoMT.Controllers
                     }).ToListAsync();
 
                 return Results.Ok(maintenanceTypes);
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapPost("/api/maintenance/{vehicleId}", async (int vehicleId, MaintenanceHistoryRecordDTO maintenance, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
                 {
@@ -72,7 +72,7 @@ namespace AutoMT.Controllers
 
                     await db.SaveChangesAsync();
                     return Results.Created($"/api/maintenance/{vehicleId}/{Maintenance.Id}", Maintenance);
-                }).RequireAuthorization();
+                }).RequireAuthorization().DisableAntiforgery();
         }
     }
 }

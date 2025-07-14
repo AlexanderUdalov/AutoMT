@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using AutoMT.Data;
 using AutoMT.Services;
 using AutoMT.Controllers;
+using Microsoft.AspNetCore.Mvc;
 
 var jwtKey = "super_secret_jwt_key_123";
 var key = Encoding.ASCII.GetBytes(jwtKey);
@@ -51,10 +52,10 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 }
 app.UseCors("AllowAll");
-app.UseAuthentication();
 app.UseRouting();
-app.UseStaticFiles();
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 app.MapAuthEndpoints();
 app.MapVehiclesEndpoints();
 app.MapMaintenanceEndpoints();

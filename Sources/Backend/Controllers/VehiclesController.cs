@@ -22,7 +22,7 @@ namespace AutoMT.Controllers
                     .ToListAsync();
 
                 return Results.Ok(vehicles);
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapGet("/api/vehicles/{vehicleId}", async (int vehicleId, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -33,7 +33,7 @@ namespace AutoMT.Controllers
                 if (vehicle is null) return Results.NotFound();
 
                 return Results.Ok(vehicle);
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapPost("/api/vehicles", async (VehicleCreateDTO vehicleDto, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -71,7 +71,7 @@ namespace AutoMT.Controllers
 
 
                 return Results.Created($"/api/vehicles/{vehicle.Id}", vehicle);
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapPost("/api/vehicles/upload/{id}", async (int id, [FromForm] IFormFile image, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -101,7 +101,7 @@ namespace AutoMT.Controllers
                 await db.SaveChangesAsync();
 
                 return Results.Ok();
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapPut("/api/vehicles/{vehicleId}", async (int vehicleId, VehicleUpdateDTO vehicleDto, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -138,7 +138,7 @@ namespace AutoMT.Controllers
 
                 await db.SaveChangesAsync();
                 return Results.Accepted($"/api/vehicles/{vehicleId}", existing);
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapDelete("/api/vehicles/{vehicleId}", async (int vehicleId, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -151,7 +151,7 @@ namespace AutoMT.Controllers
                 db.Vehicles.Remove(existing);
                 await db.SaveChangesAsync();
                 return Results.Ok();
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
         }
     }

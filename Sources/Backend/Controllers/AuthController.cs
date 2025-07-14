@@ -12,7 +12,7 @@ namespace AutoMT.Controllers
     {
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/api/auth/validate", () => Results.Ok()).RequireAuthorization();
+            app.MapGet("/api/auth/validate", () => Results.Ok()).RequireAuthorization().DisableAntiforgery();
             app.MapPost("/api/auth/changeUsername", async ([FromBody] string newUsername, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
                 var userId = userCtx.GetUserId(ctx);
@@ -30,7 +30,7 @@ namespace AutoMT.Controllers
                 await db.SaveChangesAsync();
 
                 return Results.Ok();
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapPost("/api/auth/changePassword", async ([FromBody] string newPassword, AppDbContext db, JwtService jwtService, PasswordHasher<string> hasher, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -45,7 +45,7 @@ namespace AutoMT.Controllers
                 await db.SaveChangesAsync();
 
                 return Results.Ok();
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapPost("/api/auth/checkCurrentPassword", async ([FromBody] string password, AppDbContext db, PasswordHasher<string> hasher, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -61,7 +61,7 @@ namespace AutoMT.Controllers
                     return Results.BadRequest();
 
                 return Results.Ok();
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapDelete("/api/auth/delete", async (AppDbContext db, PasswordHasher<string> hasher, HttpContext ctx, IUserContext userCtx) =>
             {
@@ -76,7 +76,7 @@ namespace AutoMT.Controllers
                 await db.SaveChangesAsync();
 
                 return Results.Ok();
-            }).RequireAuthorization();
+            }).RequireAuthorization().DisableAntiforgery();
 
             app.MapPost("/api/auth/register", async (RegisterDTO dto, AppDbContext db, JwtService jwtService, PasswordHasher<string> hasher) =>
             {
