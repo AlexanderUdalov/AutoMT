@@ -11,7 +11,7 @@ export function account() {
 
         changeUsernameForm() {
             return {
-                username: '',
+                usernameInput: '',
                 error: '',
                 changed: false,
 
@@ -22,12 +22,13 @@ export function account() {
                         return;
 
                     try {
-                        const res = await changeUsername(this.username);
+                        const res = await changeUsername(this.usernameInput);
 
                         if (res.ok) {
                             this.changed = true;
+                            this.username = this.usernameInput;
 
-                            localStorage.setItem('username', this.username);
+                            localStorage.setItem('username', this.usernameInput);
                             setTimeout(() => { this.changed = false; }, 2000);
                             return;
                         }
