@@ -13,7 +13,12 @@ export function index() {
             await this.initVehicles();
             const urlParams = new URLSearchParams(window.location.search);
             var currentCatId = urlParams.get('vehicleId');
-            this.currentCarIndex = this.cars.findIndex(item => item.id == currentCatId);
+            if (currentCatId) {
+                this.currentCarIndex = this.cars.findIndex(item => item.id == currentCatId);
+            }
+            else {
+                this.currentCarIndex = 0;
+            }
             await this.initMaintenances();
             this.inited = true;
         },

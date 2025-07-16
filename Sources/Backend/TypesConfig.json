@@ -1,0 +1,80 @@
+{
+    "TypesConfig": {
+        "MaintenanceTypes": [
+            {
+                "Id": 1,
+                "Name": "Замена масла",
+                "Icon": "fas fa-oil-can",
+                "Period": 7500
+            },
+            {
+                "Id": 2,
+                "Name": "Замена воздушного фильтра",
+                "Icon": "fas fa-oil-can",
+                "Period": 7500
+            },
+            {
+                "Id": 3,
+                "Name": "Замена тормозных колодок",
+                "Icon": "fas fa-oil-can",
+                "Period": 7500
+            },
+            {
+                "Id": 4,
+                "Name": "Замена свечей зажигания",
+                "Icon": "fas fa-oil-can",
+                "Period": 7500
+            },
+            {
+                "Id": 5,
+                "Name": "Проверка охлаждающей жидкости",
+                "Icon": "fas fa-oil-can",
+                "Period": 7500
+            }
+        ],
+        "PartTypes": [
+            {
+                "Id": 1,
+                "Name": "Моторное масло"
+            },
+            {
+                "Id": 2,
+                "Name": "Маслянный фильтр"
+            },
+            {
+                "Id": 3,
+                "Name": "Воздушный фильтр"
+            },
+            {
+                "Id": 4,
+                "Name": "Тормозные колодки"
+            },
+            {
+                "Id": 5,
+                "Name": "Свчеа зажигания"
+            }
+        ],
+        "MaintenanceRequiredPartTypes": [
+            {
+                "MaintenanceTypeId": 1,
+                "PartTypeId": 1
+            },
+            {
+                "MaintenanceTypeId": 1,
+                "PartTypeId": 2
+            },
+            {
+                "MaintenanceTypeId": 2,
+                "PartTypeId": 3
+            },
+            {
+                "MaintenanceTypeId": 3,
+                "PartTypeId": 4
+            },
+            {
+                "MaintenanceTypeId": 4,
+                "PartTypeId": 5
+            }
+        ]
+    }
+}

@@ -12,6 +12,8 @@ var jwtKey = "super_secret_jwt_key_123";
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("TypesConfig.json", optional: false, reloadOnChange: true);
+builder.Services.Configure<TypesConfig>(builder.Configuration.GetSection("TypesConfig"));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>

@@ -2,7 +2,9 @@ using AutoMT.Data;
 using AutoMT.DTOs;
 using AutoMT.Models;
 using AutoMT.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AutoMT.Controllers
 {
@@ -28,18 +30,18 @@ namespace AutoMT.Controllers
                     return Results.Ok(records);
                 }).RequireAuthorization().DisableAntiforgery();
 
-            app.MapGet("/api/maintenance/types", async (AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            app.MapGet("/api/maintenance/types", (IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
-                var maintenanceTypes = await db.MaintenanceTypes
+                var maintenanceTypes = config.Value.MaintenanceTypes
                     .Select(x => new MaintenanceTypeDTO
                     {
                         Id = x.Id,
                         Icon = x.Icon,
                         Name = x.Name,
                         Period = x.Period,
-                        Parts = db.MaintenanceRequiredPartTypes
+                        Parts = config.Value.MaintenanceRequiredPartTypes
                             .Where(mrp => mrp.MaintenanceTypeId == x.Id)
-                            .Join(db.PartTypes,
+                            .Join(config.Value.PartTypes,
                                 mrp => mrp.PartTypeId,
                                 pt => pt.Id,
                                 (mrp, pt) => new MaintenancePartTypeDTO
@@ -48,7 +50,7 @@ namespace AutoMT.Controllers
                                     Name = pt.Name
                                 })
                             .ToList()
-                    }).ToListAsync();
+                    }).ToList();
 
                 return Results.Ok(maintenanceTypes);
             }).RequireAuthorization().DisableAntiforgery();
