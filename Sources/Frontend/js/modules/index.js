@@ -81,18 +81,6 @@ export function index() {
             return this.maintenanceTypes.find(item => item.id == index);
         },
 
-        getIntervalText(index) {
-            return `Каждые ${this.getMaintenanceType(index).period} км`;
-        },
-
-        getShortIntervalText(index) {
-            return `${this.getMaintenanceType(index).period} км`;
-        },
-
-        getShortLastChangedText(item) {
-            return `${item.mileage} км`;
-        },
-
         getNextMileage(item) {
             var type = this.getMaintenanceType(item.typeId);
             return item.mileage + type.period;
@@ -121,11 +109,6 @@ export function index() {
         getDueText(item) {
             const remaining = this.getNextMileage(item) - this.currentCar.mileage;
             return remaining > 0 ? `Осталось ${remaining} км` : `Просрочено на ${-remaining} км`;
-        },
-
-        getShortDueText(item) {
-            const remaining = this.getNextMileage(item) - this.currentCar.mileage;
-            return remaining > 0 ? `${remaining} км` : `+${-remaining} км`;
         },
 
         updateMileage() {

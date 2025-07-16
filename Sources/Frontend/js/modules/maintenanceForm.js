@@ -8,6 +8,7 @@ export function maintenanceForm() {
         parts: [],
         allPartTypes: [], // Все возможные типы запчастей
         availablePartTypes: [], // Доступные для выбора типы
+        inited: false,
 
         async init() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -24,6 +25,7 @@ export function maintenanceForm() {
                 this.allPartTypes = this.currentMaintenance.parts;
                 this.availablePartTypes = [...this.allPartTypes];
             }
+            this.inited = true;
         },
 
         getVehicleName() {
