@@ -11,6 +11,9 @@ export function index() {
 
         async init() {
             await this.initVehicles();
+            const urlParams = new URLSearchParams(window.location.search);
+            var currentCatId = urlParams.get('vehicleId');
+            this.currentCarIndex = this.cars.findIndex(item => item.id == currentCatId);
             await this.initMaintenances();
             this.inited = true;
         },
