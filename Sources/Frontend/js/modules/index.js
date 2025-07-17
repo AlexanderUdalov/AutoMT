@@ -7,7 +7,7 @@ export function index() {
         maintenanceTypes: [],
         maintenanceItems: [],
         updateMileageModalOpened: false,
-        mileageNotification: true,
+        mileageNotification: false,
         disableNotify: false,
         newMileage: 0,
         currentCarIndex: 0,
