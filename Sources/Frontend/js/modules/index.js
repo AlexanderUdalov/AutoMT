@@ -1,4 +1,4 @@
-import { getVehicleMaintenances, getMaintenanceTypes } from "../api/maintenanceService.js";
+import { getVehicleMaintenances, getMaintenanceTypes, saveMaintenance } from "../api/maintenanceService.js";
 import { getVehicles, saveVehicle } from "../api/vehicleService.js";
 
 export function index() {
@@ -157,6 +157,16 @@ export function index() {
         getDueText(item) {
             const remaining = this.getNextMileage(item) - this.currentCar.mileage;
             return remaining > 0 ? `Осталось ${remaining} км` : `Просрочено на ${-remaining} км`;
+        },
+
+        async skipMaintenance(typeId) {
+            const payload = {
+                mileage: this.currentCar.mileage,
+                typeId: typeId,
+                isSkipped: true
+            };
+            await saveMaintenance(payload, this.currentCar.id);
+            await this.init();
         }
     }
 }

@@ -42,7 +42,7 @@ export function maintenanceForm() {
             this.parts.push({
                 type: '',
                 brand: '',
-                code: ''
+                article: ''
             });
             
             this.updateAvailablePartTypes();

@@ -68,9 +68,32 @@ namespace AutoMT.Controllers
                     {
                         VehicleId = vehicleId,
                         TypeId = maintenance.TypeId,
-                        Mileage = maintenance.Mileage
+                        Mileage = maintenance.Mileage,
+                        IsSkipped = maintenance.IsSkipped ?? false
                     };
                     db.Maintenances.Add(Maintenance);
+                    await db.SaveChangesAsync();
+
+                    foreach (var Part in maintenance.Parts)
+                    {
+                        var NewPart = new Part()
+                        {
+                            TypeId = Part.TypeId,
+                            Article = Part.Article,
+                            Brand = Part.Brand
+                        };
+                        db.Parts.Add(NewPart);
+                        await db.SaveChangesAsync();
+
+                        var usedParts = new MaintenanceUsedParts()
+                        {
+                            MaintenanceId = Maintenance.Id,
+                            PartId = NewPart.Id
+                        };
+
+                        db.MaintenanceUsedParts.Add(usedParts);
+                        await db.SaveChangesAsync();
+                    }
 
                     await db.SaveChangesAsync();
                     return Results.Created($"/api/maintenance/{vehicleId}/{Maintenance.Id}", Maintenance);

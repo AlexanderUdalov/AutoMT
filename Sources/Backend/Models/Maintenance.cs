@@ -22,6 +22,7 @@ public class MaintenanceRecord
     public int VehicleId { get; set; }
     public int TypeId { get; set; }
     public int Mileage { get; set; }
+    public bool IsSkipped { get; set; }
 }
 
 public class MaintenanceUsedParts

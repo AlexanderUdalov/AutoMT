@@ -63,7 +63,8 @@ namespace AutoMT.Controllers
                         {
                             VehicleId = vehicle.Id,
                             TypeId = entry.TypeId,
-                            Mileage = entry.Mileage
+                            Mileage = entry.Mileage,
+                            IsSkipped = false
                         };
 
                         db.Maintenances.Add(record);

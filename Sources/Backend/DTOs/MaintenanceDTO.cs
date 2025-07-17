@@ -5,6 +5,7 @@ public class MaintenanceHistoryRecordDTO
     public int Id { get; set; }
     public int TypeId { get; set; }
     public int Mileage { get; set; }
+    public bool? IsSkipped { get; set; }
     public List<MaintenancePartDTO> Parts { get; set; } = default!;
 }
 
