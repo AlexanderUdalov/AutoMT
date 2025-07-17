@@ -6,12 +6,15 @@ export function index() {
         cars: [],
         maintenanceTypes: [],
         maintenanceItems: [],
+        maintenanceHistory: [],
         updateMileageModalOpened: false,
         mileageNotification: false,
         disableNotify: false,
         newMileage: 0,
         currentCarIndex: 0,
         inited: false,
+        showHistory: false,
+        loadingHistory: false,
 
         async init() {
             await this.initVehicles();
@@ -42,7 +45,7 @@ export function index() {
         async initMaintenances() {
             try {
                 this.maintenanceTypes = await getMaintenanceTypes();
-                this.maintenanceItems = await getVehicleMaintenances(this.cars[this.currentCarIndex].id);
+                this.maintenanceItems = await getVehicleMaintenances(this.cars[this.currentCarIndex].id, false);
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
             }
@@ -167,6 +170,23 @@ export function index() {
             };
             await saveMaintenance(payload, this.currentCar.id);
             await this.init();
+        },
+
+        async loadHistory() {
+            if (this.showHistory) {
+                this.showHistory = false;
+                return;
+            }
+            this.loadingHistory = true;
+
+            this.maintenanceHistory = (
+                await getVehicleMaintenances(this.cars[this.currentCarIndex].id, true)
+            )
+                .filter(item => item.mileage > 0)
+                .sort((a, b) => b.mileage - a.mileage);
+
+            this.showHistory = true;
+            this.loadingHistory = false;
         }
     }
 }

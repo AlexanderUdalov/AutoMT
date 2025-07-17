@@ -225,12 +225,12 @@
                                                     </button>
                                                 </div>
                                                 <div class="flex space-x-2">
-                                                    <button
-                                                        @click="skipMaintenance(item.typeId)"
+                                                    <button @click="skipMaintenance(item.typeId)"
                                                         class="bg-gray-100 rounded-lg flex items-center text-sm text-red-500 border-red-500 border-2">
                                                         <div class="flex items-center mt-2 mb-2 ml-4 mr-4">
                                                             <i class="fa-solid fa-forward-step"></i>
-                                                            <span class="hidden md:block ml-2 mr-2">Пропустить выполнение</span>
+                                                            <span class="hidden md:block ml-2 mr-2">Пропустить
+                                                                выполнение</span>
                                                         </div>
                                                     </button>
                                                     <button
@@ -238,7 +238,8 @@
                                                         class="bg-red-500 rounded-lg flex items-center text-sm text-white">
                                                         <div class="flex items-center mt-2 mb-2 ml-4 mr-4">
                                                             <i class="fa-solid fa-check"></i>
-                                                            <span class="hidden md:block ml-2 mr-2">Отметить выполненным</span>
+                                                            <span class="hidden md:block ml-2 mr-2">Отметить
+                                                                выполненным</span>
                                                         </div>
                                                     </button>
                                                 </div>
@@ -268,15 +269,57 @@
                                 </div>
                             </div>
                         </template>
+                        <div class="flex justify-center">
+                            <button @click="loadHistory()"
+                                class="flex items-center text-sm text-red-600 hover:underline transition">
+                                <span x-text="showHistory || loadingHistory ? 'Скрыть историю' : 'Показать историю'"></span>
+                                <i class="fas ml-2 transition-transform"
+                                    :class="showHistory ? 'fa-chevron-down rotate-180' : 'fa-chevron-down'"></i>
+                            </button>
+                        </div>
+                        <div x-show="loadingHistory">Загрузка...</div>
+                        <div x-show="showHistory" x-transition class="space-y-2 mt-3">
+                            <template x-for="(item, index) in maintenanceHistory"
+                                :key="item.id">
+                                <div class="bg-gray-50 border border-gray-200 rounded p-3 space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <i :class="getMaintenanceType(item.typeId).icon"
+                                            class="text-gray-400 text-lg"></i>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-700"
+                                                x-text="getMaintenanceType(item.typeId).name"></h4>
+                                            <p class="text-sm text-gray-500 mt-1">
+                                                Выполнено на <span x-text="`${item.mileage} км`"></span>
+                                                <template x-if="item.performedAt">
+                                                    <span> — <span
+                                                            x-text="(new Date(item.performedAt)).toLocaleDateString('ru-RU')"></span></span>
+                                                </template>
+                                            </p>
+                                        </div>
+                                    </div>
 
-                        <!-- <div
-                        class="bg-white rounded-lg shadow border-2 border-dashed border-gray-300 hover:border-red-400 transition-colors mt-4">
-                        <button @click="addMaintenanceItem()"
-                            class="w-full p-3 md:p-4 flex justify-center items-center">
-                            <i class="fas fa-plus-circle text-xl md:text-2xl text-red-500 mr-2 md:mr-3"></i>
-                            <p class="text-base md:text-lg font-medium text-gray-700">Добавить работу по ТО</p>
-                        </button>
-                    </div> -->
+                                    <div class="pl-6">
+                                        <template
+                                            x-if="getMaintenanceType(item.typeId).parts && getMaintenanceType(item.typeId).parts.length > 0">
+                                            <ul class="text-sm text-gray-600 list-disc list-inside space-y-1">
+                                                <template x-for="part in getMaintenanceType(item.typeId).parts"
+                                                    :key="part.id">
+                                                    <li>
+                                                        <span
+                                                            x-text="`${part.name || 'Деталь'} — ${part.brand || 'неизвестный бренд'}`"></span>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </template>
+                                        <template
+                                            x-if="!getMaintenanceType(item.typeId).parts || getMaintenanceType(item.typeId).parts.length === 0">
+                                            <p class="text-sm text-gray-400 italic">Нет запчастей</p>
+                                        </template>
+                                    </div>
+                                </div>
+
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -295,7 +338,7 @@
                 pattern="\d*" @input="event.target.value = event.target.value.replace(/[^\d]/g, '')"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
             <div class="flex space-x-2 mt-2" x-show="mileageNotification">
-                <input type="checkbox" id="notify" name="notify" x-model="disableNotify"/>
+                <input type="checkbox" id="notify" name="notify" x-model="disableNotify" />
                 <label for="notify"> Больше не уведомлять</label>
             </div>
             <div class="flex justify-end space-x-4 mt-6">

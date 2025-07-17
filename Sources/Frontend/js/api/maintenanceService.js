@@ -3,8 +3,13 @@ import { createJsonHeaders } from './auth.js';
 
 const API_URL = `${SERVER_URL}/api/maintenance`;
 
-export async function getVehicleMaintenances(vehicleId) {
-    const response = await fetch(`${API_URL}/${vehicleId}`, {
+export async function getVehicleMaintenances(vehicleId, fullHistory) {
+    const url = new URL(`${API_URL}/${vehicleId}`);
+    if (fullHistory) {
+        url.searchParams.set('fullHistory', 'true');
+    }
+
+    const response = await fetch(url.toString(), {
         method: 'GET',
         headers: createJsonHeaders()
     });

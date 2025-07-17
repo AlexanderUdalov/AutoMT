@@ -12,7 +12,7 @@ namespace AutoMT.Controllers
     {
         public static void MapMaintenanceEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/api/maintenance/{vehicleId}", async (int vehicleId, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            app.MapGet("/api/maintenance/{vehicleId}", async (int vehicleId, [FromQuery] bool? fullHistory, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
                 {
                     var userId = userCtx.GetUserId(ctx);
                     if (userId is null) return Results.Unauthorized();
@@ -21,12 +21,16 @@ namespace AutoMT.Controllers
                     if (vehicle == null) return Results.BadRequest();
                     if (vehicle.UserId != userId) return Results.Forbid();
 
-                    var records = await db.Maintenances
-                        .Where(r => r.VehicleId == vehicleId)
-                        .GroupBy(r => r.TypeId) // Группируем по типу работ
-                        .Select(g => g.OrderByDescending(r => r.Mileage).FirstOrDefault()) // В каждой группе берем запись с максимальным пробегом
-                        .ToListAsync();
+                    var query = db.Maintenances.Where(r => r.VehicleId == vehicleId);
+                    if (fullHistory.HasValue && fullHistory.Value)
+                    {
+                        return Results.Ok(await query.ToListAsync());
+                    }
 
+                    var records = await query
+                        .GroupBy(r => r.TypeId)
+                        .Select(g => g.OrderByDescending(r => r.Mileage).FirstOrDefault())
+                        .ToListAsync();
                     return Results.Ok(records);
                 }).RequireAuthorization().DisableAntiforgery();
 
