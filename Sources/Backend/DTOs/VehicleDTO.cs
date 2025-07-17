@@ -13,6 +13,8 @@ public class VehicleUpdateDTO
     public int? Mileage { get; set; }
 
     public bool? IsDefault { get; set; }
+
+    public bool? DisableNotify { get; set; }
 }
 
 public class VehicleCreateDTO

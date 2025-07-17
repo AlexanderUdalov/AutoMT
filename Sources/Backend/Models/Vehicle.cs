@@ -14,7 +14,10 @@ public class Vehicle
     public int Year { get; set; }
 
     public int Mileage { get; set; }
+    public DateTime LastMileageUpdate { get; set; }
 
     public bool IsDefault { get; set; }
     public string? ImageUrl { get; set; } = default!;
+
+    public bool DisableNotify { get; set; } = true;
 }

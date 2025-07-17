@@ -48,6 +48,8 @@ namespace AutoMT.Controllers
                     Mileage = vehicleDto.Mileage,
                     VIN = vehicleDto.VIN,
                     UserId = userId.Value,
+                    LastMileageUpdate = DateTime.UtcNow,
+                    DisableNotify = false,
                     IsDefault = !await db.Vehicles.AnyAsync(v => v.UserId == userId.Value)
                 };
                 db.Vehicles.Add(vehicle);
@@ -121,7 +123,14 @@ namespace AutoMT.Controllers
                     existing.Year = vehicleDto.Year.Value;
 
                 if (vehicleDto.Mileage.HasValue)
+                {
                     existing.Mileage = vehicleDto.Mileage.Value;
+                    existing.LastMileageUpdate = DateTime.UtcNow;
+                }
+
+                if (vehicleDto.DisableNotify.HasValue)
+                    existing.DisableNotify = vehicleDto.DisableNotify.Value;
+
 
                 if (vehicleDto.IsDefault.HasValue && vehicleDto.IsDefault.Value)
                 {

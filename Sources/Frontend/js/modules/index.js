@@ -1,26 +1,42 @@
 import { getVehicleMaintenances, getMaintenanceTypes } from "../api/maintenanceService.js";
-import { getVehicles } from "../api/vehicleService.js";
+import { getVehicles, saveVehicle } from "../api/vehicleService.js";
 
 export function index() {
     return {
         cars: [],
         maintenanceTypes: [],
         maintenanceItems: [],
+        updateMileageModalOpened: false,
+        mileageNotification: true,
+        disableNotify: false,
+        newMileage: 0,
         currentCarIndex: 0,
         inited: false,
 
         async init() {
             await this.initVehicles();
             const urlParams = new URLSearchParams(window.location.search);
-            var currentCatId = urlParams.get('vehicleId');
-            if (currentCatId) {
-                this.currentCarIndex = this.cars.findIndex(item => item.id == currentCatId);
+            var currentVehicleId = urlParams.get('vehicleId');
+            if (currentVehicleId) {
+                this.currentCarIndex = this.cars.findIndex(item => item.id == currentVehicleId);
             }
             else {
                 this.currentCarIndex = 0;
             }
             await this.initMaintenances();
             this.inited = true;
+
+            if (this.cars[this.currentCarIndex].disableNotify === false) {
+                const lastUpdate = new Date(this.cars[this.currentCarIndex].lastMileageUpdate);
+                const now = new Date();
+
+                const daysPassed = (now - lastUpdate) / (1000 * 60 * 60 * 24);
+
+                if (daysPassed >= 7) {
+                    this.mileageNotification = true;
+                    this.openUpdateMileageModal();
+                }
+            }
         },
 
         async initMaintenances() {
@@ -38,6 +54,30 @@ export function index() {
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
             }
+        },
+
+        openUpdateMileageModal() {
+            this.newMileage = this.currentCar.mileage;
+            this.updateMileageModalOpened = true;
+        },
+
+        async updateMileage() {
+            try {
+                const res = await saveVehicle({
+                    id: this.currentCar.id,
+                    mileage: this.newMileage,
+                    disableNotify: this.disableNotify
+                }, true);
+                if (res) {
+                    await this.init();
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+
+            this.newMileage = 0;
+            this.updateMileageModalOpened = false;
+            await this.init();
         },
 
         selectCar(Index) {
@@ -117,13 +157,6 @@ export function index() {
         getDueText(item) {
             const remaining = this.getNextMileage(item) - this.currentCar.mileage;
             return remaining > 0 ? `Осталось ${remaining} км` : `Просрочено на ${-remaining} км`;
-        },
-
-        updateMileage() {
-            const newMileage = prompt('Введите текущий пробег:', this.currentCar.mileage);
-            if (newMileage && !isNaN(newMileage)) {
-                this.currentCar.mileage = parseInt(newMileage);
-            }
-        },
+        }
     }
 }

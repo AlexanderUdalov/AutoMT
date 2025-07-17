@@ -3,8 +3,10 @@ import { getVehicles, deleteVehicle, saveVehicle, uploadImage } from '../api/veh
 export function garage() {
     return {
         cars: [],
-        openModal: false,
-        carToDelete: {},
+        deleteCarModalOpened: false,
+        updateMileageModalOpened: false,
+        newMileage: 0,
+        modalCar: {},
         inited: false,
 
         async init() {
@@ -27,15 +29,37 @@ export function garage() {
             }
         },
 
+        openUpdateMileageModal(car) {
+            this.modalCar = car;
+            this.newMileage = car.mileage;
+            this.updateMileageModalOpened = true;
+        },
+
+        async updateMileage()
+        {
+            try {
+                const res = await saveVehicle({ id: this.modalCar.id, mileage: this.newMileage }, true);
+                if (res) {
+                    await this.init();
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+            
+            this.newMileage = 0;
+            this.updateMileageModalOpened = false;
+            await this.init();
+        },
+
         openDeleteModal(car) {
-            this.carToDelete = car;
-            this.openModal = true;
+            this.modalCar = car;
+            this.deleteCarModalOpened = true;
         },
 
         async deleteCar() {
-            await deleteVehicle(this.carToDelete.id);
-            this.carToDelete = {};
-            this.openModal = false;
+            await deleteVehicle(this.modalCar.id);
+            this.modalCar = {};
+            this.deleteCarModalOpened = false;
             await this.init();
 
         },
