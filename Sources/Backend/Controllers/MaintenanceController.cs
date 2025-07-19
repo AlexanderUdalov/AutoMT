@@ -12,7 +12,7 @@ namespace AutoMT.Controllers
     {
         public static void MapMaintenanceEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/api/maintenance/{vehicleId}", async (int vehicleId, [FromQuery] bool? fullHistory, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            app.MapGet("/api/maintenance/{vehicleId}", async (int vehicleId, [FromQuery] bool? fullHistory, IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
                 {
                     var userId = userCtx.GetUserId(ctx);
                     if (userId is null) return Results.Unauthorized();
@@ -21,17 +21,56 @@ namespace AutoMT.Controllers
                     if (vehicle == null) return Results.BadRequest();
                     if (vehicle.UserId != userId) return Results.Forbid();
 
-                    var query = db.Maintenances.Where(r => r.VehicleId == vehicleId);
-                    if (fullHistory.HasValue && fullHistory.Value)
-                    {
-                        return Results.Ok(await query.ToListAsync());
-                    }
-
-                    var records = await query
-                        .GroupBy(r => r.TypeId)
-                        .Select(g => g.OrderByDescending(r => r.Mileage).FirstOrDefault())
+                    var maintenanceList = await db.Maintenances
+                        .Where(r => r.VehicleId == vehicleId && !r.IsSkipped)
                         .ToListAsync();
-                    return Results.Ok(records);
+
+                    var filteredMaintenances = fullHistory == true
+                      ? maintenanceList
+                      : maintenanceList
+                          .GroupBy(m => m.TypeId)
+                          .Select(g => g.OrderByDescending(m => m.Mileage).First())
+                          .ToList();
+
+                    var maintenanceIds = filteredMaintenances.Select(m => m.Id).ToList();
+
+                    var partTypes = config.Value.PartTypes.ToDictionary(pt => pt.Id, pt => pt.Name);
+                    var parts = await db.MaintenanceUsedParts
+                        .Where(up => maintenanceIds.Contains(up.MaintenanceId))
+                        .Join(db.Parts,
+                            up => up.PartId,
+                            p => p.Id,
+                            (up, p) => new
+                            {
+                                up.MaintenanceId,
+                                Part = new MaintenancePartDTO
+                                {
+                                    Name = partTypes[p.TypeId],
+                                    Article = p.Article,
+                                    Brand = p.Brand
+                                }
+                            })
+                        .ToListAsync();
+
+                    var partsByMaintenance = parts
+                        .GroupBy(x => x.MaintenanceId)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.Select(x => x.Part).ToList()
+                        );
+
+                    var result = filteredMaintenances
+                        .Select(m => new MaintenanceHistoryRecordDTO
+                        {
+                            Id = m.Id,
+                            TypeId = m.TypeId,
+                            Mileage = m.Mileage,
+                            IsSkipped = m.IsSkipped,
+                            Parts = partsByMaintenance.TryGetValue(m.Id, out var partList) ? partList : []
+                        })
+                        .ToList();
+
+                    return Results.Ok(result);
                 }).RequireAuthorization().DisableAntiforgery();
 
             app.MapGet("/api/maintenance/types", (IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
@@ -59,7 +98,7 @@ namespace AutoMT.Controllers
                 return Results.Ok(maintenanceTypes);
             }).RequireAuthorization().DisableAntiforgery();
 
-            app.MapPost("/api/maintenance/{vehicleId}", async (int vehicleId, MaintenanceHistoryRecordDTO maintenance, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            app.MapPost("/api/maintenance/{vehicleId}", async (int vehicleId, IOptions<TypesConfig> config, MaintenanceHistoryRecordDTO maintenance, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
                 {
                     var userId = userCtx.GetUserId(ctx);
                     if (userId is null) return Results.Unauthorized();
@@ -78,25 +117,28 @@ namespace AutoMT.Controllers
                     db.Maintenances.Add(Maintenance);
                     await db.SaveChangesAsync();
 
-                    foreach (var Part in maintenance.Parts)
+                    if (maintenance.Parts != null)
                     {
-                        var NewPart = new Part()
+                        foreach (var Part in maintenance.Parts)
                         {
-                            TypeId = Part.TypeId,
-                            Article = Part.Article,
-                            Brand = Part.Brand
-                        };
-                        db.Parts.Add(NewPart);
-                        await db.SaveChangesAsync();
+                            var NewPart = new Part()
+                            {
+                                TypeId = config.Value.PartTypes.First(pt => pt.Name == Part.Name).Id,
+                                Article = Part.Article,
+                                Brand = Part.Brand
+                            };
+                            db.Parts.Add(NewPart);
+                            await db.SaveChangesAsync();
 
-                        var usedParts = new MaintenanceUsedParts()
-                        {
-                            MaintenanceId = Maintenance.Id,
-                            PartId = NewPart.Id
-                        };
+                            var usedParts = new MaintenanceUsedParts()
+                            {
+                                MaintenanceId = Maintenance.Id,
+                                PartId = NewPart.Id
+                            };
 
-                        db.MaintenanceUsedParts.Add(usedParts);
-                        await db.SaveChangesAsync();
+                            db.MaintenanceUsedParts.Add(usedParts);
+                            await db.SaveChangesAsync();
+                        }
                     }
 
                     await db.SaveChangesAsync();

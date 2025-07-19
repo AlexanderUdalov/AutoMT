@@ -40,7 +40,7 @@ export function maintenanceForm() {
             if (this.availablePartTypes.length === 0) return;
             
             this.parts.push({
-                type: '',
+                name: '',
                 brand: '',
                 article: ''
             });

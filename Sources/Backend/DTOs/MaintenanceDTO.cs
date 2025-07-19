@@ -26,8 +26,7 @@ public class MaintenancePartTypeDTO
 
 public class MaintenancePartDTO
 {
-    public int Id { get; set; }
-    public int TypeId { get; set; }
+    public string Name { get; set; } = default!;
     public string Article { get; set; } = default!;
     public string Brand { get; set; } = default!;
 }

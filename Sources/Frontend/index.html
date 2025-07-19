@@ -300,19 +300,19 @@
 
                                     <div class="pl-6">
                                         <template
-                                            x-if="getMaintenanceType(item.typeId).parts && getMaintenanceType(item.typeId).parts.length > 0">
+                                            x-if="item.parts && item.parts.length > 0">
                                             <ul class="text-sm text-gray-600 list-disc list-inside space-y-1">
-                                                <template x-for="part in getMaintenanceType(item.typeId).parts"
+                                                <template x-for="part in item.parts"
                                                     :key="part.id">
                                                     <li>
                                                         <span
-                                                            x-text="`${part.name || 'Деталь'} — ${part.brand || 'неизвестный бренд'}`"></span>
+                                                            x-text="`${part.name || 'Деталь'} — ${part.brand || 'неизвестный бренд'} ${part.article}`"></span>
                                                     </li>
                                                 </template>
                                             </ul>
                                         </template>
                                         <template
-                                            x-if="!getMaintenanceType(item.typeId).parts || getMaintenanceType(item.typeId).parts.length === 0">
+                                            x-if="!item.parts || item.parts.length === 0">
                                             <p class="text-sm text-gray-400 italic">Нет запчастей</p>
                                         </template>
                                     </div>
