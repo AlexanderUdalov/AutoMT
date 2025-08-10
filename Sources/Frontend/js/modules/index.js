@@ -1,12 +1,14 @@
-import { getVehicleMaintenances, getMaintenanceTypes, saveMaintenance } from "../api/maintenanceService.js";
+import { getVehicleMaintenances, getVehicleMaintenanceTypes, saveMaintenance, deleteMaintenanceType, addMaintenanceType, getDefaultMaintenanceTypes } from "../api/maintenanceService.js";
 import { getVehicles, saveVehicle } from "../api/vehicleService.js";
 
 export function index() {
     return {
         cars: [],
         maintenanceTypes: [],
+        defaultMaintenanceTypes: [],
         maintenanceItems: [],
         maintenanceHistory: [],
+        addMaintenanceModalOpened: false,
         updateMileageModalOpened: false,
         mileageNotification: false,
         disableNotify: false,
@@ -15,6 +17,9 @@ export function index() {
         inited: false,
         showHistory: false,
         loadingHistory: false,
+        newMaintenanceType: {
+            id: -1
+        },
 
         async init() {
             await this.initVehicles();
@@ -26,25 +31,30 @@ export function index() {
             else {
                 this.currentCarIndex = 0;
             }
-            await this.initMaintenances();
-            this.inited = true;
 
-            if (this.cars[this.currentCarIndex].disableNotify === false) {
-                const lastUpdate = new Date(this.cars[this.currentCarIndex].lastMileageUpdate);
-                const now = new Date();
+            this.defaultMaintenanceTypes = await getDefaultMaintenanceTypes();
+            if (this.cars.length != 0) {
+                await this.initMaintenances();
 
-                const daysPassed = (now - lastUpdate) / (1000 * 60 * 60 * 24);
+                if (this.cars[this.currentCarIndex].disableNotify === false) {
+                    const lastUpdate = new Date(this.cars[this.currentCarIndex].lastMileageUpdate);
+                    const now = new Date();
 
-                if (daysPassed >= 7) {
-                    this.mileageNotification = true;
-                    this.openUpdateMileageModal();
+                    const daysPassed = (now - lastUpdate) / (1000 * 60 * 60 * 24);
+
+                    if (daysPassed >= 7) {
+                        this.mileageNotification = true;
+                        this.openUpdateMileageModal();
+                    }
                 }
             }
+
+            this.inited = true;
         },
 
         async initMaintenances() {
             try {
-                this.maintenanceTypes = await getMaintenanceTypes();
+                this.maintenanceTypes = await getVehicleMaintenanceTypes(this.cars[this.currentCarIndex].id);
                 this.maintenanceItems = await getVehicleMaintenances(this.cars[this.currentCarIndex].id, false);
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
@@ -187,6 +197,24 @@ export function index() {
 
             this.showHistory = true;
             this.loadingHistory = false;
+        },
+
+        async deleteMaintenanceTypeSubmit(typeId) {
+            await deleteMaintenanceType(this.cars[this.currentCarIndex].id, typeId);
+            location.reload();
+        },
+
+        async addMaintenanceTypeSubmit() {
+            const payload = {
+                id: this.newMaintenanceType.id,
+                name: this.newMaintenanceType.Name ?? "",
+                period: this.newMaintenanceType.Period ?? 0
+            };
+            await addMaintenanceType(this.cars[this.currentCarIndex].id, payload);
+            this.addMaintenanceModalOpened = false;
+            this.newMaintenanceType.id = -1;
+            this.inited = false;
+            await this.init();
         }
     }
 }

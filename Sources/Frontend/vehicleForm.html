@@ -109,7 +109,7 @@
                     </div>
 
                     <!-- Регламентные работы -->
-                    <div class="mb-8">
+                    <div class="mb-8" x-show="!isEditMode">
                         <div class="flex justify-between items-center mb-4 border-b pb-2">
                             <h2 class="text-xl font-semibold text-gray-800">Регламентные работы</h2>
                             <button type="button" @click="showMaintenanceList = !showMaintenanceList"

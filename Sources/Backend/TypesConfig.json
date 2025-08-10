@@ -1,80 +1,142 @@
 {
-    "TypesConfig": {
-        "MaintenanceTypes": [
-            {
-                "Id": 1,
-                "Name": "Замена масла",
-                "Icon": "fas fa-oil-can",
-                "Period": 7500
-            },
-            {
-                "Id": 2,
-                "Name": "Замена воздушного фильтра",
-                "Icon": "fas fa-oil-can",
-                "Period": 7500
-            },
-            {
-                "Id": 3,
-                "Name": "Замена тормозных колодок",
-                "Icon": "fas fa-oil-can",
-                "Period": 7500
-            },
-            {
-                "Id": 4,
-                "Name": "Замена свечей зажигания",
-                "Icon": "fas fa-oil-can",
-                "Period": 7500
-            },
-            {
-                "Id": 5,
-                "Name": "Проверка охлаждающей жидкости",
-                "Icon": "fas fa-oil-can",
-                "Period": 7500
-            }
-        ],
-        "PartTypes": [
-            {
-                "Id": 1,
-                "Name": "Моторное масло"
-            },
-            {
-                "Id": 2,
-                "Name": "Маслянный фильтр"
-            },
-            {
-                "Id": 3,
-                "Name": "Воздушный фильтр"
-            },
-            {
-                "Id": 4,
-                "Name": "Тормозные колодки"
-            },
-            {
-                "Id": 5,
-                "Name": "Свчеа зажигания"
-            }
-        ],
-        "MaintenanceRequiredPartTypes": [
-            {
-                "MaintenanceTypeId": 1,
-                "PartTypeId": 1
-            },
-            {
-                "MaintenanceTypeId": 1,
-                "PartTypeId": 2
-            },
-            {
-                "MaintenanceTypeId": 2,
-                "PartTypeId": 3
-            },
-            {
-                "MaintenanceTypeId": 3,
-                "PartTypeId": 4
-            },
-            {
-                "MaintenanceTypeId": 4,
-                "PartTypeId": 5
-            }
-        ]
-    }
+  "TypesConfig": {
+    "MaintenanceTypes": [
+      {
+        "Id": 1,
+        "Name": "Замена масла",
+        "Icon": "fas fa-oil-can",
+        "Period": 7500
+      },
+      {
+        "Id": 2,
+        "Name": "Замена воздушного фильтра",
+        "Icon": "fas fa-wind",
+        "Period": 15000
+      },
+      {
+        "Id": 3,
+        "Name": "Замена тормозных колодок",
+        "Icon": "fas fa-car-crash",
+        "Period": 30000
+      },
+      {
+        "Id": 4,
+        "Name": "Замена свечей зажигания",
+        "Icon": "fas fa-bolt",
+        "Period": 30000
+      },
+      {
+        "Id": 5,
+        "Name": "Проверка охлаждающей жидкости",
+        "Icon": "fas fa-thermometer-half",
+        "Period": 20000
+      },
+      {
+        "Id": 6,
+        "Name": "Замена топливного фильтра",
+        "Icon": "fas fa-gas-pump",
+        "Period": 30000
+      },
+      {
+        "Id": 7,
+        "Name": "Замена ремня ГРМ",
+        "Icon": "fas fa-cogs",
+        "Period": 60000
+      },
+      {
+        "Id": 8,
+        "Name": "Проверка аккумулятора",
+        "Icon": "fas fa-car-battery",
+        "Period": 10000
+      },
+      {
+        "Id": 9,
+        "Name": "Проверка подвески",
+        "Icon": "fas fa-car",
+        "Period": 30000
+      },
+      {
+        "Id": 10,
+        "Name": "Развал-схождение",
+        "Icon": "fas fa-compass",
+        "Period": 20000
+      }
+    ],
+    "PartTypes": [
+      {
+        "Id": 1,
+        "Name": "Моторное масло"
+      },
+      {
+        "Id": 2,
+        "Name": "Масляный фильтр"
+      },
+      {
+        "Id": 3,
+        "Name": "Воздушный фильтр"
+      },
+      {
+        "Id": 4,
+        "Name": "Тормозные колодки"
+      },
+      {
+        "Id": 5,
+        "Name": "Свеча зажигания"
+      },
+      {
+        "Id": 6,
+        "Name": "Охлаждающая жидкость"
+      },
+      {
+        "Id": 7,
+        "Name": "Топливный фильтр"
+      },
+      {
+        "Id": 8,
+        "Name": "Ремень ГРМ"
+      },
+      {
+        "Id": 9,
+        "Name": "Аккумулятор"
+      }
+    ],
+    "MaintenanceRequiredPartTypes": [
+      {
+        "MaintenanceTypeId": 1,
+        "PartTypeId": 1
+      },
+      {
+        "MaintenanceTypeId": 1,
+        "PartTypeId": 2
+      },
+      {
+        "MaintenanceTypeId": 2,
+        "PartTypeId": 3
+      },
+      {
+        "MaintenanceTypeId": 3,
+        "PartTypeId": 4
+      },
+      {
+        "MaintenanceTypeId": 4,
+        "PartTypeId": 5
+      },
+      {
+        "MaintenanceTypeId": 5,
+        "PartTypeId": 6
+      },
+      {
+        "MaintenanceTypeId": 6,
+        "PartTypeId": 7
+      },
+      {
+        "MaintenanceTypeId": 7,
+        "PartTypeId": 8
+      },
+      {
+        "MaintenanceTypeId": 8,
+        "PartTypeId": 9
+      }
+    ]
+  }
 }

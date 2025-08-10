@@ -30,3 +30,9 @@ public class MaintenanceUsedParts
     public int MaintenanceId { get; set; }
     public int PartId { get; set; }
 }
+
+public class VehicleMaintenanceType
+{
+    public int VehicleId { get; set; }
+    public int TypeId { get; set; }
+}

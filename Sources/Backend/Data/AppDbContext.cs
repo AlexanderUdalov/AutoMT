@@ -16,12 +16,17 @@ namespace AutoMT.Data
         public DbSet<MaintenanceRecord> Maintenances => Set<MaintenanceRecord>();
         public DbSet<Part> Parts => Set<Part>();
         public DbSet<MaintenanceUsedParts> MaintenanceUsedParts => Set<MaintenanceUsedParts>();
+        public DbSet<VehicleMaintenanceType> VehicleMaintenanceTypes => Set<VehicleMaintenanceType>();
+        public DbSet<MaintenanceType> CustomTypes => Set<MaintenanceType>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<MaintenanceUsedParts>()
                 .HasKey(mup => new { mup.MaintenanceId, mup.PartId });
+
+            modelBuilder.Entity<VehicleMaintenanceType>()
+                .HasKey(mup => new { mup.VehicleId, mup.TypeId });
         }
     }
 }

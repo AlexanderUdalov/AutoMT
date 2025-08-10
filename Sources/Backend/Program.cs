@@ -48,11 +48,19 @@ builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
+    if (!db.CustomTypes.Any())
+    {
+        db.Database.ExecuteSqlRaw(
+            "INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('CustomTypes', 100)"
+        );
+    }
 }
+
 app.UseCors("AllowAll");
 app.UseRouting();
 app.UseAuthentication();

@@ -1,5 +1,5 @@
 import { getVehicle, saveVehicle } from '../api/vehicleService.js';
-import { getMaintenanceTypes } from '../api/maintenanceService.js';
+import { getDefaultMaintenanceTypes } from '../api/maintenanceService.js';
 
 export function vehicleForm() {
     return {
@@ -23,7 +23,7 @@ export function vehicleForm() {
                 this.isEditMode = true;
                 await this.loadVehicleData(this.vehicleId);
             } else {
-                this.maintenanceItems = await getMaintenanceTypes();
+                this.maintenanceItems = await getDefaultMaintenanceTypes();
             }
         },
 

@@ -1,5 +1,5 @@
 import { getVehicle } from '../api/vehicleService.js';
-import { getMaintenanceTypes, saveMaintenance } from '../api/maintenanceService.js';
+import { getVehicleMaintenanceTypes, saveMaintenance } from '../api/maintenanceService.js';
 
 export function maintenanceForm() {
     return {
@@ -20,9 +20,9 @@ export function maintenanceForm() {
             }
 
             if (maintenanceId) {
-                var types = await getMaintenanceTypes();
+                var types = await getVehicleMaintenanceTypes(vehicleId);
                 this.currentMaintenance = types.find(item => item.id == maintenanceId);
-                this.allPartTypes = this.currentMaintenance.parts;
+                this.allPartTypes = this.currentMaintenance?.parts ?? [];
                 this.availablePartTypes = [...this.allPartTypes];
             }
             this.inited = true;
@@ -38,32 +38,32 @@ export function maintenanceForm() {
 
         addPart() {
             if (this.availablePartTypes.length === 0) return;
-            
+
             this.parts.push({
                 name: '',
                 brand: '',
                 article: ''
             });
-            
+
             this.updateAvailablePartTypes();
         },
-        
+
         removePart(index) {
             this.parts.splice(index, 1);
             this.updateAvailablePartTypes();
         },
         updateAvailablePartTypes() {
             const selectedTypes = this.parts.map(p => p.type).filter(Boolean);
-            
+
             this.availablePartTypes = this.allPartTypes.filter(
                 pt => !selectedTypes.includes(pt.name)
             );
         },
-        
+
         getAvailablePartTypesForSelect(currentIndex) {
             const currentType = this.parts[currentIndex]?.type;
             if (!currentType) return this.availablePartTypes;
-            
+
             return [
                 ...this.allPartTypes.filter(pt => pt.name === currentType),
                 ...this.availablePartTypes

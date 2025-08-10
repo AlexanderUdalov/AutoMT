@@ -67,6 +67,12 @@ namespace AutoMT.Controllers
                             IsSkipped = false
                         };
 
+                        var vehicleMaintenance = new VehicleMaintenanceType
+                        {
+                            VehicleId = vehicle.Id,
+                            TypeId = entry.TypeId,
+                        };
+                        db.VehicleMaintenanceTypes.Add(vehicleMaintenance);
                         db.Maintenances.Add(record);
                     }
                     await db.SaveChangesAsync();

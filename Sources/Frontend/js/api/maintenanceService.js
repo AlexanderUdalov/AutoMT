@@ -21,7 +21,7 @@ export async function getVehicleMaintenances(vehicleId, fullHistory) {
 
 
 export async function saveMaintenance(data, vehicleId) {
-    const response = await fetch(`${API_URL}/${vehicleId}` , {
+    const response = await fetch(`${API_URL}/${vehicleId}`, {
         method: 'POST',
         headers: createJsonHeaders(),
         body: JSON.stringify(data)
@@ -33,10 +33,46 @@ export async function saveMaintenance(data, vehicleId) {
 }
 
 
-export async function getMaintenanceTypes() {
+export async function getDefaultMaintenanceTypes() {
     const response = await fetch(`${API_URL}/types`, {
         method: 'GET',
         headers: createJsonHeaders()
+    });
+
+    if (!response.ok)
+        throw new Error(`Error: ${response.status}`);
+    return await response.json();
+}
+
+export async function getVehicleMaintenanceTypes(vehicleId) {
+    const response = await fetch(`${API_URL}/${vehicleId}/types`, {
+        method: 'GET',
+        headers: createJsonHeaders()
+    });
+
+    if (!response.ok)
+        throw new Error(`Error: ${response.status}`);
+    return await response.json();
+}
+
+
+export async function deleteMaintenanceType(vehicleId, typeId) {
+    const response = await fetch(`${API_URL}/${vehicleId}/types/${typeId}`, {
+        method: 'DELETE',
+        headers: createJsonHeaders()
+    });
+
+    if (!response.ok)
+        throw new Error(`Error: ${response.status}`);
+    return;
+}
+
+
+export async function addMaintenanceType(vehicleId, data) {
+    const response = await fetch(`${API_URL}/${vehicleId}/types`, {
+        method: 'POST',
+        headers: createJsonHeaders(),
+        body: JSON.stringify(data)
     });
 
     if (!response.ok)

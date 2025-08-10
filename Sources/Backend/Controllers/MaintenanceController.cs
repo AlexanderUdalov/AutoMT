@@ -98,6 +98,31 @@ namespace AutoMT.Controllers
                 return Results.Ok(maintenanceTypes);
             }).RequireAuthorization().DisableAntiforgery();
 
+            app.MapGet("/api/maintenance/{vehicleId}/types", async (int vehicleId, IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                var vehicle = await db.Vehicles.FindAsync(vehicleId);
+                if (vehicle == null) return Results.BadRequest();
+                if (vehicle.UserId != userId) return Results.Forbid();
+
+                var typeIds = await db.VehicleMaintenanceTypes
+                    .Where(v => v.VehicleId == vehicleId)
+                    .Select(v => v.TypeId)
+                    .ToListAsync();
+
+                var systemTypes = config.Value.MaintenanceTypes
+                    .Where(t => typeIds.Contains(t.Id));
+
+                var customTypes = await db.CustomTypes
+                    .Where(t => typeIds.Contains(t.Id))
+                    .ToListAsync();
+
+                var result = systemTypes.Concat(customTypes).ToList();
+                return Results.Ok(result);
+            }).RequireAuthorization().DisableAntiforgery();
+
             app.MapPost("/api/maintenance/{vehicleId}", async (int vehicleId, IOptions<TypesConfig> config, MaintenanceHistoryRecordDTO maintenance, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
                 {
                     var userId = userCtx.GetUserId(ctx);
@@ -144,6 +169,75 @@ namespace AutoMT.Controllers
                     await db.SaveChangesAsync();
                     return Results.Created($"/api/maintenance/{vehicleId}/{Maintenance.Id}", Maintenance);
                 }).RequireAuthorization().DisableAntiforgery();
+
+            app.MapPost("/api/maintenance/{vehicleId}/types", async (int vehicleId, IOptions<TypesConfig> config, MaintenanceTypeDTO type, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                var vehicle = await db.Vehicles.FindAsync(vehicleId);
+                if (vehicle == null) return Results.BadRequest();
+                if (vehicle.UserId != userId) return Results.Forbid();
+
+                int typeId = type.Id;
+                if (typeId == -1)
+                {
+                    var newType = new MaintenanceType()
+                    {
+                        Name = type.Name,
+                        Period = type.Period,
+                        Icon = "fa-solid fa-screwdriver-wrench"
+                    };
+
+                    db.CustomTypes.Add(newType);
+                    await db.SaveChangesAsync();
+                    typeId = newType.Id;
+                }
+
+                var VehicleMaintenanceType = new VehicleMaintenanceType
+                {
+                    VehicleId = vehicleId,
+                    TypeId = typeId
+                };
+                db.VehicleMaintenanceTypes.Add(VehicleMaintenanceType);
+
+                var Maintenance = new MaintenanceRecord
+                {
+                    VehicleId = vehicleId,
+                    TypeId = typeId,
+                    Mileage = 0,
+                    IsSkipped = false
+                };
+                db.Maintenances.Add(Maintenance);
+                await db.SaveChangesAsync();
+                return Results.Ok(VehicleMaintenanceType);
+            }).RequireAuthorization().DisableAntiforgery();
+
+            app.MapDelete("/api/maintenance/{vehicleId}/types/{typeId}", async (int vehicleId, int typeId, IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            {
+                var userId = userCtx.GetUserId(ctx);
+                if (userId is null) return Results.Unauthorized();
+
+                var vehicle = await db.Vehicles.FindAsync(vehicleId);
+                if (vehicle == null) return Results.BadRequest();
+                if (vehicle.UserId != userId) return Results.Forbid();
+
+                var existingType = await db.VehicleMaintenanceTypes
+                    .FirstOrDefaultAsync(v => v.VehicleId == vehicleId && v.TypeId == typeId);
+
+                if (existingType is null) return Results.NotFound();
+
+                db.VehicleMaintenanceTypes.Remove(existingType);
+                var zeroMileageRecord = await db.Maintenances
+                    .FirstOrDefaultAsync(m => m.VehicleId == vehicleId && m.TypeId == typeId && m.Mileage == 0);
+
+                if (zeroMileageRecord != null)
+                    db.Maintenances.Remove(zeroMileageRecord);
+
+                await db.SaveChangesAsync();
+
+                return Results.Ok();
+            }).RequireAuthorization().DisableAntiforgery();
         }
     }
 }
