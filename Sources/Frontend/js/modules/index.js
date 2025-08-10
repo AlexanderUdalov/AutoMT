@@ -122,7 +122,10 @@ export function index() {
 
         // Отсортированные работы
         sortedMaintenanceItems() {
-            return [...this.maintenanceItems].sort((a, b) => {
+            const filteredItems = this.maintenanceItems.filter(item => {
+                return this.maintenanceTypes.some(type => type.id === item.typeId);
+            });
+            return [...filteredItems].sort((a, b) => {
                 // Просроченные в начале
                 if (this.isOverdue(a) && !this.isOverdue(b)) return -1;
                 if (!this.isOverdue(a) && this.isOverdue(b)) return 1;
@@ -139,7 +142,9 @@ export function index() {
         },
 
         getMaintenanceType(index) {
-            return this.maintenanceTypes.find(item => item.id == index);
+            return this.maintenanceTypes.find(item => item.id == index)
+                || this.defaultMaintenanceTypes.find(item => item.id == index)
+                || null;
         },
 
         getNextMileage(item) {
