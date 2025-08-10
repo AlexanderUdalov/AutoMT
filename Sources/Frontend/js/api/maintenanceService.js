@@ -4,7 +4,7 @@ import { createJsonHeaders } from './auth.js';
 const API_URL = `${SERVER_URL}/api/maintenance`;
 
 export async function getVehicleMaintenances(vehicleId, fullHistory) {
-    const url = new URL(`${API_URL}/${vehicleId}`);
+    const url = new URL(`${API_URL}/${vehicleId}`, window.location.origin);
     if (fullHistory) {
         url.searchParams.set('fullHistory', 'true');
     }
