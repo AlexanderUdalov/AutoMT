@@ -54,3 +54,4 @@ jobs:
           sudo cp -r /home/${{ secrets.VPS_USER }}/deploy-temp/Publish/Frontend/* /var/www/automt/frontend/
           sudo chown -R www-data:www-data /var/www/automt/frontend
           sudo systemctl start automt-backend
+          sudo systemctl restart nginx
