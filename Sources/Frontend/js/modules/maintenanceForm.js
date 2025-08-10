@@ -1,5 +1,5 @@
 import { getVehicle } from '../api/vehicleService.js';
-import { getVehicleMaintenanceTypes, saveMaintenance } from '../api/maintenanceService.js';
+import { getDefaultMaintenanceTypes, saveMaintenance } from '../api/maintenanceService.js';
 
 export function maintenanceForm() {
     return {
@@ -20,7 +20,7 @@ export function maintenanceForm() {
             }
 
             if (maintenanceId) {
-                var types = await getVehicleMaintenanceTypes(vehicleId);
+                var types = await getDefaultMaintenanceTypes();
                 this.currentMaintenance = types.find(item => item.id == maintenanceId);
                 this.allPartTypes = this.currentMaintenance?.parts ?? [];
                 this.availablePartTypes = [...this.allPartTypes];

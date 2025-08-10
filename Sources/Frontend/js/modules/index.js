@@ -142,8 +142,8 @@ export function index() {
         },
 
         getMaintenanceType(index) {
-            return this.maintenanceTypes.find(item => item.id == index)
-                || this.defaultMaintenanceTypes.find(item => item.id == index)
+            return this.defaultMaintenanceTypes.find(item => item.id == index)
+                || this.maintenanceTypes.find(item => item.id == index)
                 || null;
         },
 
