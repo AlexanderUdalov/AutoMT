@@ -3,63 +3,87 @@
     "MaintenanceTypes": [
       {
         "Id": 1,
-        "Name": "Замена масла",
-        "Icon": "fas fa-oil-can",
-        "Period": 7500
+        "Name": "Инспекционный сервис",
+        "Icon": "fas fa-search",
+        "Period": 15000
       },
       {
         "Id": 2,
-        "Name": "Замена воздушного фильтра",
-        "Icon": "fas fa-wind",
+        "Name": "Компьютерная диагностика неисправностей",
+        "Icon": "fas fa-desktop",
         "Period": 15000
       },
       {
         "Id": 3,
-        "Name": "Замена тормозных колодок",
-        "Icon": "fas fa-car-crash",
-        "Period": 30000
+        "Name": "Диагностика ходовой",
+        "Icon": "fas fa-car",
+        "Period": 15000
       },
       {
         "Id": 4,
-        "Name": "Замена свечей зажигания",
-        "Icon": "fas fa-bolt",
-        "Period": 30000
+        "Name": "Осмотр тормозных колодок",
+        "Icon": "fas fa-eye",
+        "Period": 15000
       },
       {
         "Id": 5,
-        "Name": "Проверка охлаждающей жидкости",
-        "Icon": "fas fa-thermometer-half",
-        "Period": 20000
+        "Name": "Замена моторного масла",
+        "Icon": "fas fa-oil-can",
+        "Period": 15000
       },
       {
         "Id": 6,
+        "Name": "Замена масляного фильтра",
+        "Icon": "fas fa-filter",
+        "Period": 15000
+      },
+      {
+        "Id": 7,
+        "Name": "Замена пробки масляного поддона",
+        "Icon": "fas fa-screwdriver",
+        "Period": 15000
+      },
+      {
+        "Id": 8,
+        "Name": "Замена воздушного фильтра",
+        "Icon": "fas fa-wind",
+        "Period": 30000
+      },
+      {
+        "Id": 9,
+        "Name": "Замена салонного фильтра",
+        "Icon": "fas fa-filter",
+        "Period": 15000
+      },
+      {
+        "Id": 10,
         "Name": "Замена топливного фильтра",
         "Icon": "fas fa-gas-pump",
         "Period": 30000
       },
       {
-        "Id": 7,
-        "Name": "Замена ремня ГРМ",
-        "Icon": "fas fa-cogs",
+        "Id": 11,
+        "Name": "Замена свечей зажигания",
+        "Icon": "fas fa-bolt",
         "Period": 60000
       },
       {
-        "Id": 8,
-        "Name": "Проверка аккумулятора",
-        "Icon": "fas fa-car-battery",
-        "Period": 10000
+        "Id": 12,
+        "Name": "Замена охлаждающей жидкости (антифриза)",
+        "Icon": "fas fa-thermometer-half",
+        "Period": 90000
       },
       {
-        "Id": 9,
-        "Name": "Проверка подвески",
-        "Icon": "fas fa-car",
-        "Period": 30000
+        "Id": 13,
+        "Name": "Замена тормозной жидкости",
+        "Icon": "fas fa-tint",
+        "Period": 60000
       },
       {
-        "Id": 10,
-        "Name": "Развал-схождение",
-        "Icon": "fas fa-compass",
-        "Period": 20000
+        "Id": 15,
+        "Name": "Замена комплекта ГРМ",
+        "Icon": "fas fa-cogs",
+        "Period": 120000
       }
     ],
     "PartTypes": [
@@ -73,69 +97,93 @@
       },
       {
         "Id": 3,
-        "Name": "Воздушный фильтр"
+        "Name": "Пробка масляного поддона"
       },
       {
         "Id": 4,
-        "Name": "Тормозные колодки"
+        "Name": "Воздушный фильтр"
       },
       {
         "Id": 5,
-        "Name": "Свеча зажигания"
+        "Name": "Салонный фильтр"
       },
       {
         "Id": 6,
-        "Name": "Охлаждающая жидкость"
-      },
-      {
-        "Id": 7,
         "Name": "Топливный фильтр"
       },
       {
+        "Id": 7,
+        "Name": "Свеча зажигания"
+      },
+      {
         "Id": 8,
-        "Name": "Ремень ГРМ"
+        "Name": "Жидкость ГУР"
       },
       {
         "Id": 9,
-        "Name": "Аккумулятор"
+        "Name": "Охлаждающая жидкость (антифриз)"
+      },
+      {
+        "Id": 10,
+        "Name": "Тормозная жидкость"
+      },
+      {
+        "Id": 12,
+        "Name": "Комплект ГРМ"
+      },
+      {
+        "Id": 13,
+        "Name": "Тормозные колодки"
       }
     ],
     "MaintenanceRequiredPartTypes": [
       {
-        "MaintenanceTypeId": 1,
+        "MaintenanceTypeId": 5,
         "PartTypeId": 1
       },
       {
-        "MaintenanceTypeId": 1,
+        "MaintenanceTypeId": 5,
         "PartTypeId": 2
       },
       {
-        "MaintenanceTypeId": 2,
+        "MaintenanceTypeId": 5,
         "PartTypeId": 3
       },
       {
-        "MaintenanceTypeId": 3,
-        "PartTypeId": 4
-      },
-      {
-        "MaintenanceTypeId": 4,
-        "PartTypeId": 5
-      },
-      {
-        "MaintenanceTypeId": 5,
-        "PartTypeId": 6
-      },
-      {
         "MaintenanceTypeId": 6,
-        "PartTypeId": 7
+        "PartTypeId": 2
       },
       {
         "MaintenanceTypeId": 7,
-        "PartTypeId": 8
+        "PartTypeId": 3
       },
       {
         "MaintenanceTypeId": 8,
+        "PartTypeId": 4
+      },
+      {
+        "MaintenanceTypeId": 9,
+        "PartTypeId": 5
+      },
+      {
+        "MaintenanceTypeId": 10,
+        "PartTypeId": 6
+      },
+      {
+        "MaintenanceTypeId": 11,
+        "PartTypeId": 7
+      },
+      {
+        "MaintenanceTypeId": 12,
         "PartTypeId": 9
+      },
+      {
+        "MaintenanceTypeId": 13,
+        "PartTypeId": 10
+      },
+      {
+        "MaintenanceTypeId": 15,
+        "PartTypeId": 12
       }
     ]
   }
