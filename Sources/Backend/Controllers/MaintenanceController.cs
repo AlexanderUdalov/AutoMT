@@ -2,242 +2,135 @@ using AutoMT.Data;
 using AutoMT.DTOs;
 using AutoMT.Models;
 using AutoMT.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace AutoMT.Controllers
+namespace AutoMT.Controllers;
+
+public static class MaintenanceController
 {
-    public static class MaintenanceController
+    public static void MapMaintenanceEndpoints(this IEndpointRouteBuilder app)
     {
-        public static void MapMaintenanceEndpoints(this IEndpointRouteBuilder app)
+        app.MapGet("/api/maintenance/types", (IOptions<TypesConfig> config) =>
+            Results.Ok(config.Value.MaintenanceTypes.Select(type => ToTypeDto(type, config.Value))))
+            .RequireAuthorization();
+
+        app.MapGet("/api/maintenance/{vehicleId:int}/types", async (int vehicleId, AppDbContext db,
+            HttpContext ctx, IUserContext user, IOptions<TypesConfig> config) =>
         {
-            app.MapGet("/api/maintenance/{vehicleId}", async (int vehicleId, [FromQuery] bool? fullHistory, IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
-                {
-                    var userId = userCtx.GetUserId(ctx);
-                    if (userId is null) return Results.Unauthorized();
+            if (!await OwnsVehicle(vehicleId, db, ctx, user)) return Results.NotFound();
+            var ids = await db.VehicleMaintenanceTypes.Where(t => t.VehicleId == vehicleId).Select(t => t.TypeId).ToListAsync();
+            var custom = await db.CustomTypes.AsNoTracking().Where(t => ids.Contains(t.Id)).ToListAsync();
+            return Results.Ok(config.Value.MaintenanceTypes.Where(t => ids.Contains(t.Id)).Concat(custom)
+                .Select(type => ToTypeDto(type, config.Value)));
+        }).RequireAuthorization();
 
-                    var vehicle = await db.Vehicles.FindAsync(vehicleId);
-                    if (vehicle == null) return Results.BadRequest();
-                    if (vehicle.UserId != userId) return Results.Forbid();
-
-                    var maintenanceList = await db.Maintenances
-                        .Where(r => r.VehicleId == vehicleId && !r.IsSkipped)
-                        .ToListAsync();
-
-                    var filteredMaintenances = fullHistory == true
-                      ? maintenanceList
-                      : maintenanceList
-                          .GroupBy(m => m.TypeId)
-                          .Select(g => g.OrderByDescending(m => m.Mileage).First())
-                          .ToList();
-
-                    var maintenanceIds = filteredMaintenances.Select(m => m.Id).ToList();
-
-                    var partTypes = config.Value.PartTypes.ToDictionary(pt => pt.Id, pt => pt.Name);
-                    var parts = await db.MaintenanceUsedParts
-                        .Where(up => maintenanceIds.Contains(up.MaintenanceId))
-                        .Join(db.Parts,
-                            up => up.PartId,
-                            p => p.Id,
-                            (up, p) => new
-                            {
-                                up.MaintenanceId,
-                                Part = new MaintenancePartDTO
-                                {
-                                    Name = partTypes[p.TypeId],
-                                    Article = p.Article,
-                                    Brand = p.Brand
-                                }
-                            })
-                        .ToListAsync();
-
-                    var partsByMaintenance = parts
-                        .GroupBy(x => x.MaintenanceId)
-                        .ToDictionary(
-                            g => g.Key,
-                            g => g.Select(x => x.Part).ToList()
-                        );
-
-                    var result = filteredMaintenances
-                        .Select(m => new MaintenanceHistoryRecordDTO
-                        {
-                            Id = m.Id,
-                            TypeId = m.TypeId,
-                            Mileage = m.Mileage,
-                            IsSkipped = m.IsSkipped,
-                            Parts = partsByMaintenance.TryGetValue(m.Id, out var partList) ? partList : []
-                        })
-                        .ToList();
-
-                    return Results.Ok(result);
-                }).RequireAuthorization().DisableAntiforgery();
-
-            app.MapGet("/api/maintenance/types", (IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+        app.MapGet("/api/maintenance/{vehicleId:int}", async (int vehicleId, bool? fullHistory, AppDbContext db,
+            HttpContext ctx, IUserContext user, IOptions<TypesConfig> config) =>
+        {
+            if (!await OwnsVehicle(vehicleId, db, ctx, user)) return Results.NotFound();
+            var records = await db.Maintenances.AsNoTracking().Where(r => r.VehicleId == vehicleId).ToListAsync();
+            var active = await db.VehicleMaintenanceTypes.Where(t => t.VehicleId == vehicleId).Select(t => t.TypeId).ToListAsync();
+            if (fullHistory != true)
+                records = records.Where(r => active.Contains(r.TypeId)).GroupBy(r => r.TypeId)
+                    .Select(g => g.OrderByDescending(r => r.Mileage).ThenByDescending(r => r.Id).First()).ToList();
+            var ids = records.Select(r => r.Id).ToList();
+            var usedParts = await (from used in db.MaintenanceUsedParts join part in db.Parts on used.PartId equals part.Id
+                                   where ids.Contains(used.MaintenanceId)
+                                   select new { used.MaintenanceId, part.Id, part.TypeId, part.Brand, part.Article }).ToListAsync();
+            var custom = await db.CustomTypes.AsNoTracking().Where(t => records.Select(r => r.TypeId).Contains(t.Id)).ToListAsync();
+            var names = config.Value.MaintenanceTypes.Concat(custom).GroupBy(t => t.Id).ToDictionary(g => g.Key, g => g.First().Name);
+            return Results.Ok(records.Select(r => new MaintenanceHistoryRecordDTO
             {
-                var maintenanceTypes = config.Value.MaintenanceTypes
-                    .Select(x => new MaintenanceTypeDTO
-                    {
-                        Id = x.Id,
-                        Icon = x.Icon,
-                        Name = x.Name,
-                        Period = x.Period,
-                        Parts = config.Value.MaintenanceRequiredPartTypes
-                            .Where(mrp => mrp.MaintenanceTypeId == x.Id)
-                            .Join(config.Value.PartTypes,
-                                mrp => mrp.PartTypeId,
-                                pt => pt.Id,
-                                (mrp, pt) => new MaintenancePartTypeDTO
-                                {
-                                    Id = pt.Id,
-                                    Name = pt.Name
-                                })
-                            .ToList()
-                    }).ToList();
+                Id = r.Id, TypeId = r.TypeId, TypeName = names.GetValueOrDefault(r.TypeId, "Техническая работа"),
+                Mileage = r.Mileage, IsSkipped = r.IsSkipped,
+                Parts = usedParts.Where(p => p.MaintenanceId == r.Id).Select(p => new MaintenancePartDTO
+                {
+                    Id = p.Id, TypeId = p.TypeId, Name = config.Value.PartTypes.FirstOrDefault(t => t.Id == p.TypeId)?.Name ?? "Расходник",
+                    Brand = p.Brand, Article = p.Article
+                }).ToList()
+            }));
+        }).RequireAuthorization();
 
-                return Results.Ok(maintenanceTypes);
-            }).RequireAuthorization().DisableAntiforgery();
+        app.MapPost("/api/maintenance/{vehicleId:int}", async (int vehicleId, MaintenanceHistoryRecordDTO dto,
+            AppDbContext db, HttpContext ctx, IUserContext user, IOptions<TypesConfig> config) =>
+        {
+            var userId = user.GetUserId(ctx);
+            var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.Id == vehicleId && v.UserId == userId);
+            if (vehicle == null) return Results.NotFound();
+            if (dto.Mileage < 0 || dto.Mileage > 9999999 || !await db.VehicleMaintenanceTypes.AnyAsync(t => t.VehicleId == vehicleId && t.TypeId == dto.TypeId))
+                return Results.BadRequest(new { message = "Проверьте тип работы и пробег." });
+            var previous = await db.Maintenances.Where(r => r.VehicleId == vehicleId && r.TypeId == dto.TypeId).MaxAsync(r => (int?)r.Mileage) ?? 0;
+            if (dto.Mileage < previous) return Results.BadRequest(new { message = "Пробег меньше предыдущего выполнения." });
+            var parts = dto.Parts ?? new();
+            var allowed = config.Value.MaintenanceRequiredPartTypes.Where(p => p.MaintenanceTypeId == dto.TypeId).Select(p => p.PartTypeId).ToList();
+            foreach (var part in parts)
+                if (part.TypeId == 0) part.TypeId = config.Value.PartTypes.FirstOrDefault(t => t.Name == part.Name)?.Id ?? 0;
+            if ((dto.IsSkipped == true && parts.Count > 0) || parts.Count > allowed.Count || parts.Select(p => p.TypeId).Distinct().Count() != parts.Count ||
+                parts.Any(p => !allowed.Contains(p.TypeId) || string.IsNullOrWhiteSpace(p.Brand) || p.Brand.Length > 120 || (p.Article?.Length ?? 0) > 120))
+                return Results.BadRequest(new { message = "Проверьте типы, бренды и артикулы расходников." });
+            await using var transaction = await db.Database.BeginTransactionAsync();
+            var record = new MaintenanceRecord { VehicleId = vehicleId, TypeId = dto.TypeId, Mileage = dto.Mileage, IsSkipped = dto.IsSkipped ?? false };
+            db.Maintenances.Add(record);
+            if (dto.Mileage > vehicle.Mileage) { vehicle.Mileage = dto.Mileage; vehicle.LastMileageUpdate = DateTime.UtcNow; }
+            var savedParts = parts.Select(p => new Part { TypeId = p.TypeId, Brand = p.Brand.Trim(), Article = p.Article?.Trim() ?? "" }).ToList();
+            db.Parts.AddRange(savedParts);
+            await db.SaveChangesAsync();
+            db.MaintenanceUsedParts.AddRange(savedParts.Select(p => new MaintenanceUsedParts { MaintenanceId = record.Id, PartId = p.Id }));
+            await db.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return Results.Created($"/api/maintenance/{vehicleId}/{record.Id}", new { record.Id });
+        }).RequireAuthorization();
 
-            app.MapGet("/api/maintenance/{vehicleId}/types", async (int vehicleId, IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+        app.MapPost("/api/maintenance/{vehicleId:int}/types", async (int vehicleId, MaintenanceTypeDTO dto,
+            AppDbContext db, HttpContext ctx, IUserContext user, IOptions<TypesConfig> config) =>
+        {
+            if (!await OwnsVehicle(vehicleId, db, ctx, user)) return Results.NotFound();
+            await using var transaction = await db.Database.BeginTransactionAsync();
+            int id = dto.Id;
+            if (id == -1)
             {
-                var userId = userCtx.GetUserId(ctx);
-                if (userId is null) return Results.Unauthorized();
+                if (string.IsNullOrWhiteSpace(dto.Name) || dto.Name.Length > 100 || dto.Period <= 0 || dto.Period > 9999999)
+                    return Results.BadRequest(new { message = "Укажите название и положительный интервал работы." });
+                var type = new MaintenanceType { Name = dto.Name.Trim(), Period = dto.Period, Icon = "wrench" };
+                db.CustomTypes.Add(type); await db.SaveChangesAsync(); id = type.Id;
+            }
+            else if (!config.Value.MaintenanceTypes.Any(t => t.Id == id))
+                return Results.BadRequest(new { message = "Неизвестный тип работы." });
+            if (await db.VehicleMaintenanceTypes.AnyAsync(t => t.VehicleId == vehicleId && t.TypeId == id))
+                return Results.Conflict(new { message = "Эта работа уже добавлена." });
+            db.VehicleMaintenanceTypes.Add(new VehicleMaintenanceType { VehicleId = vehicleId, TypeId = id });
+            db.Maintenances.Add(new MaintenanceRecord { VehicleId = vehicleId, TypeId = id, Mileage = 0 });
+            await db.SaveChangesAsync(); await transaction.CommitAsync();
+            return Results.Ok(new { typeId = id });
+        }).RequireAuthorization();
 
-                var vehicle = await db.Vehicles.FindAsync(vehicleId);
-                if (vehicle == null) return Results.BadRequest();
-                if (vehicle.UserId != userId) return Results.Forbid();
+        app.MapDelete("/api/maintenance/{vehicleId:int}/types/{typeId:int}", async (int vehicleId, int typeId,
+            AppDbContext db, HttpContext ctx, IUserContext user) =>
+        {
+            if (!await OwnsVehicle(vehicleId, db, ctx, user)) return Results.NotFound();
+            var type = await db.VehicleMaintenanceTypes.FirstOrDefaultAsync(t => t.VehicleId == vehicleId && t.TypeId == typeId);
+            if (type == null) return Results.NotFound();
+            db.VehicleMaintenanceTypes.Remove(type);
+            // Keep completed work in history when a regulation is removed.
+            var initial = await db.Maintenances.Where(r => r.VehicleId == vehicleId && r.TypeId == typeId && r.Mileage == 0).ToListAsync();
+            var ids = initial.Select(r => r.Id).ToList();
+            db.MaintenanceUsedParts.RemoveRange(db.MaintenanceUsedParts.Where(p => ids.Contains(p.MaintenanceId)));
+            db.Maintenances.RemoveRange(initial);
+            await db.SaveChangesAsync(); return Results.NoContent();
+        }).RequireAuthorization();
+    }
 
-                var typeIds = await db.VehicleMaintenanceTypes
-                    .Where(v => v.VehicleId == vehicleId)
-                    .Select(v => v.TypeId)
-                    .ToListAsync();
+    private static MaintenanceTypeDTO ToTypeDto(MaintenanceType type, TypesConfig config) => new()
+    {
+        Id = type.Id, Name = type.Name, Icon = type.Icon, Period = type.Period,
+        Parts = config.MaintenanceRequiredPartTypes.Where(p => p.MaintenanceTypeId == type.Id)
+            .Join(config.PartTypes, p => p.PartTypeId, t => t.Id, (_, t) => new MaintenancePartTypeDTO { Id = t.Id, Name = t.Name }).ToList()
+    };
 
-                var systemTypes = config.Value.MaintenanceTypes
-                    .Where(t => typeIds.Contains(t.Id));
-
-                var customTypes = await db.CustomTypes
-                    .Where(t => typeIds.Contains(t.Id))
-                    .ToListAsync();
-
-                var result = systemTypes.Concat(customTypes).ToList();
-                return Results.Ok(result);
-            }).RequireAuthorization().DisableAntiforgery();
-
-            app.MapPost("/api/maintenance/{vehicleId}", async (int vehicleId, IOptions<TypesConfig> config, MaintenanceHistoryRecordDTO maintenance, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
-                {
-                    var userId = userCtx.GetUserId(ctx);
-                    if (userId is null) return Results.Unauthorized();
-
-                    var vehicle = await db.Vehicles.FindAsync(vehicleId);
-                    if (vehicle == null) return Results.BadRequest();
-                    if (vehicle.UserId != userId) return Results.Forbid();
-
-                    var Maintenance = new MaintenanceRecord
-                    {
-                        VehicleId = vehicleId,
-                        TypeId = maintenance.TypeId,
-                        Mileage = maintenance.Mileage,
-                        IsSkipped = maintenance.IsSkipped ?? false
-                    };
-                    db.Maintenances.Add(Maintenance);
-                    await db.SaveChangesAsync();
-
-                    if (maintenance.Parts != null)
-                    {
-                        foreach (var Part in maintenance.Parts)
-                        {
-                            var NewPart = new Part()
-                            {
-                                TypeId = config.Value.PartTypes.First(pt => pt.Name == Part.Name).Id,
-                                Article = Part.Article,
-                                Brand = Part.Brand
-                            };
-                            db.Parts.Add(NewPart);
-                            await db.SaveChangesAsync();
-
-                            var usedParts = new MaintenanceUsedParts()
-                            {
-                                MaintenanceId = Maintenance.Id,
-                                PartId = NewPart.Id
-                            };
-
-                            db.MaintenanceUsedParts.Add(usedParts);
-                            await db.SaveChangesAsync();
-                        }
-                    }
-
-                    await db.SaveChangesAsync();
-                    return Results.Created($"/api/maintenance/{vehicleId}/{Maintenance.Id}", Maintenance);
-                }).RequireAuthorization().DisableAntiforgery();
-
-            app.MapPost("/api/maintenance/{vehicleId}/types", async (int vehicleId, IOptions<TypesConfig> config, MaintenanceTypeDTO type, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
-            {
-                var userId = userCtx.GetUserId(ctx);
-                if (userId is null) return Results.Unauthorized();
-
-                var vehicle = await db.Vehicles.FindAsync(vehicleId);
-                if (vehicle == null) return Results.BadRequest();
-                if (vehicle.UserId != userId) return Results.Forbid();
-
-                int typeId = type.Id;
-                if (typeId == -1)
-                {
-                    var newType = new MaintenanceType()
-                    {
-                        Name = type.Name,
-                        Period = type.Period,
-                        Icon = "fa-solid fa-screwdriver-wrench"
-                    };
-
-                    db.CustomTypes.Add(newType);
-                    await db.SaveChangesAsync();
-                    typeId = newType.Id;
-                }
-
-                var VehicleMaintenanceType = new VehicleMaintenanceType
-                {
-                    VehicleId = vehicleId,
-                    TypeId = typeId
-                };
-                db.VehicleMaintenanceTypes.Add(VehicleMaintenanceType);
-
-                var Maintenance = new MaintenanceRecord
-                {
-                    VehicleId = vehicleId,
-                    TypeId = typeId,
-                    Mileage = 0,
-                    IsSkipped = false
-                };
-                db.Maintenances.Add(Maintenance);
-                await db.SaveChangesAsync();
-                return Results.Ok(VehicleMaintenanceType);
-            }).RequireAuthorization().DisableAntiforgery();
-
-            app.MapDelete("/api/maintenance/{vehicleId}/types/{typeId}", async (int vehicleId, int typeId, IOptions<TypesConfig> config, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
-            {
-                var userId = userCtx.GetUserId(ctx);
-                if (userId is null) return Results.Unauthorized();
-
-                var vehicle = await db.Vehicles.FindAsync(vehicleId);
-                if (vehicle == null) return Results.BadRequest();
-                if (vehicle.UserId != userId) return Results.Forbid();
-
-                var existingType = await db.VehicleMaintenanceTypes
-                    .FirstOrDefaultAsync(v => v.VehicleId == vehicleId && v.TypeId == typeId);
-
-                if (existingType is null) return Results.NotFound();
-
-                db.VehicleMaintenanceTypes.Remove(existingType);
-                var zeroMileageRecord = await db.Maintenances
-                    .FirstOrDefaultAsync(m => m.VehicleId == vehicleId && m.TypeId == typeId && m.Mileage == 0);
-
-                if (zeroMileageRecord != null)
-                    db.Maintenances.Remove(zeroMileageRecord);
-
-                await db.SaveChangesAsync();
-
-                return Results.Ok();
-            }).RequireAuthorization().DisableAntiforgery();
-        }
+    private static Task<bool> OwnsVehicle(int vehicleId, AppDbContext db, HttpContext ctx, IUserContext user)
+    {
+        var userId = user.GetUserId(ctx);
+        return db.Vehicles.AnyAsync(v => v.Id == vehicleId && v.UserId == userId);
     }
 }

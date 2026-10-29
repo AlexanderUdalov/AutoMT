@@ -1,0 +1,49 @@
+html { color-scheme: light dark; }
+body { margin: 0; background: light-dark(#f4f5f7, #12151a); }
+button, select, summary, .amt-interactive { cursor: pointer; }
+button:disabled { cursor: wait; }
+#automt-app { container-type: inline-size; container-name: amt; width: 100%; }
+#automt-app .amt-app { border: 0; border-radius: 0; min-height: 100dvh; }
+#automt-app .amt-shell { grid-template-columns: 216px minmax(0, 1fr); min-height: 100dvh; }
+#automt-app .amt-side { position: sticky; top: 0; height: 100dvh; }
+#automt-app .amt-content { width: 100%; max-width: 1120px; margin: 0 auto; padding: 32px; }
+#automt-app .amt-overlay { position: fixed; padding: 24px; align-items: center; }
+#automt-app .amt-dialog { max-height: calc(100dvh - 48px); overflow-y: auto; }
+#automt-app .amt-loading { padding: 70px 24px; text-align: center; color: var(--a-muted); }
+#automt-app .amt-error:empty { display: none; }
+#automt-app [aria-busy="true"] { cursor: progress; }
+#automt-app .amt-toast { position: fixed; top: 18px; }
+#automt-app .amt-auth { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+#automt-app .amt-authbox { width: 100%; max-width: 380px; padding: 30px; border: 1px solid var(--a-line); border-radius: 18px; background: var(--a-paper); }
+#automt-app .amt-authbox .amt-brand { padding: 0; margin-bottom: 34px; }
+#automt-app .amt-authbox h1 { font-size: 26px; }
+#automt-app .amt-authbox .amt-primary { width: 100%; margin-top: 22px; }
+#automt-app .amt-authbox a { color: var(--a-accent); }
+#automt-app .amt-authlinks { margin-top: 22px !important; font-size: 12px; text-align: center; color: var(--a-muted); }
+#automt-app .amt-vin .amt-plain { min-height: 38px; }
+#automt-app .amt-workactions, #automt-app .amt-workextra { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 15px; }
+#automt-app .amt-history { margin-top: 24px; }
+#automt-app .amt-history h2 { margin-bottom: 12px; }
+#automt-app .amt-historyrow { display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--a-line); }
+#automt-app .amt-historyrow h3 { font-size: 13px; }
+#automt-app .amt-historyrow svg { color: var(--a-muted); margin-top: 2px; }
+@container amt (max-width: 740px) {
+  #automt-app .amt-shell { grid-template-columns: 150px minmax(0, 1fr); }
+  #automt-app .amt-content { padding: 22px 18px; }
+}
+@container amt (max-width: 580px) {
+  #automt-app .amt-app { height: 100dvh; min-height: 0; overflow: hidden; }
+  #automt-app .amt-shell { display: block; height: 100%; min-height: 0; }
+  #automt-app .amt-main { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+  #automt-app .amt-content { overflow-y: auto; overscroll-behavior: contain; min-height: 0; flex: 1; padding: 0 17px 20px; scrollbar-width: thin; }
+  #automt-app .amt-topbar { flex-shrink: 0; max-height: 72px; overflow: hidden; transition: max-height .18s, padding .18s, opacity .18s; }
+  #automt-app .amt-app[data-scrolled="true"] .amt-topbar { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; }
+  #automt-app .amt-bottomnav { flex-shrink: 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  #automt-app .amt-overlay { padding: 12px; align-items: flex-end; }
+  #automt-app .amt-dialog { max-height: calc(100dvh - 24px); padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  #automt-app .amt-authbox { padding: 24px; }
+  #automt-app .amt-toast { top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #automt-app .amt-topbar { transition: none; }
+}

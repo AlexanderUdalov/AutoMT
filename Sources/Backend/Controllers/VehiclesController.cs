@@ -4,6 +4,7 @@ using AutoMT.Models;
 using AutoMT.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AutoMT.Controllers
 {
@@ -35,11 +36,20 @@ namespace AutoMT.Controllers
                 return Results.Ok(vehicle);
             }).RequireAuthorization().DisableAntiforgery();
 
-            app.MapPost("/api/vehicles", async (VehicleCreateDTO vehicleDto, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
+            app.MapPost("/api/vehicles", async (VehicleCreateDTO vehicleDto, AppDbContext db, HttpContext ctx, IUserContext userCtx, IOptions<TypesConfig> config) =>
             {
                 var userId = userCtx.GetUserId(ctx);
                 if (userId is null) return Results.Unauthorized();
 
+                var history = vehicleDto.MaintenanceHistory ?? new();
+                if (string.IsNullOrWhiteSpace(vehicleDto.Brand) || vehicleDto.Brand.Length > 60 ||
+                    string.IsNullOrWhiteSpace(vehicleDto.Model) || vehicleDto.Model.Length > 60 ||
+                    string.IsNullOrWhiteSpace(vehicleDto.VIN) || vehicleDto.VIN.Length != 17 ||
+                    vehicleDto.Mileage is < 0 or > 9999999 || vehicleDto.Year < 1900 || vehicleDto.Year > DateTime.UtcNow.Year + 1 ||
+                    history.Select(r => r.TypeId).Distinct().Count() != history.Count ||
+                    history.Any(r => r.Mileage < 0 || r.Mileage > vehicleDto.Mileage || !config.Value.MaintenanceTypes.Any(t => t.Id == r.TypeId)))
+                    return Results.BadRequest(new { message = "Проверьте данные автомобиля и последнего обслуживания." });
+                await using var transaction = await db.Database.BeginTransactionAsync();
                 var vehicle = new Vehicle
                 {
                     Brand = vehicleDto.Brand,
@@ -79,6 +89,7 @@ namespace AutoMT.Controllers
                 }
 
 
+                await transaction.CommitAsync();
                 return Results.Created($"/api/vehicles/{vehicle.Id}", vehicle);
             }).RequireAuthorization().DisableAntiforgery();
 
@@ -88,7 +99,8 @@ namespace AutoMT.Controllers
                 var userId = userCtx.GetUserId(ctx);
                 if (userId is null) return Results.Unauthorized();
 
-                if (image == null || image.Length == 0)
+                if (image == null || image.Length == 0 || image.Length > 10 * 1024 * 1024 ||
+                    !new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" }.Contains(Path.GetExtension(image.FileName).ToLowerInvariant()))
                     return Results.BadRequest();
 
                 var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.UserId == userId.Value && v.Id == id);
@@ -117,7 +129,7 @@ namespace AutoMT.Controllers
                 var userId = userCtx.GetUserId(ctx);
                 if (userId is null) return Results.Unauthorized();
 
-                var existing = db.Vehicles.First(v => v.UserId == userId.Value && v.Id == vehicleId);
+                var existing = await db.Vehicles.FirstOrDefaultAsync(v => v.UserId == userId.Value && v.Id == vehicleId);
                 if (existing is null) return Results.NotFound();
 
                 if (!string.IsNullOrWhiteSpace(vehicleDto.Brand))
@@ -129,6 +141,8 @@ namespace AutoMT.Controllers
                 if (vehicleDto.Year.HasValue)
                     existing.Year = vehicleDto.Year.Value;
 
+                if (vehicleDto.Mileage is < 0 or > 9999999)
+                    return Results.BadRequest(new { message = "Проверьте пробег автомобиля." });
                 if (vehicleDto.Mileage.HasValue)
                 {
                     existing.Mileage = vehicleDto.Mileage.Value;
@@ -161,11 +175,24 @@ namespace AutoMT.Controllers
                 var userId = userCtx.GetUserId(ctx);
                 if (userId is null) return Results.Unauthorized();
 
-                var existing = db.Vehicles.First(v => v.UserId == userId.Value && v.Id == vehicleId);
+                var existing = await db.Vehicles.FirstOrDefaultAsync(v => v.UserId == userId.Value && v.Id == vehicleId);
                 if (existing is null) return Results.NotFound();
 
+                await using var transaction = await db.Database.BeginTransactionAsync();
+                var recordIds = await db.Maintenances.Where(r => r.VehicleId == vehicleId).Select(r => r.Id).ToListAsync();
+                db.MaintenanceUsedParts.RemoveRange(db.MaintenanceUsedParts.Where(p => recordIds.Contains(p.MaintenanceId)));
+                db.Maintenances.RemoveRange(db.Maintenances.Where(r => r.VehicleId == vehicleId));
+                db.VehicleNotes.RemoveRange(db.VehicleNotes.Where(n => n.VehicleId == vehicleId));
+                db.VehicleMaintenanceTypes.RemoveRange(db.VehicleMaintenanceTypes.Where(t => t.VehicleId == vehicleId));
                 db.Vehicles.Remove(existing);
                 await db.SaveChangesAsync();
+                if (existing.IsDefault)
+                {
+                    var next = await db.Vehicles.FirstOrDefaultAsync(v => v.UserId == userId.Value);
+                    if (next != null) next.IsDefault = true;
+                    await db.SaveChangesAsync();
+                }
+                await transaction.CommitAsync();
                 return Results.Ok();
             }).RequireAuthorization().DisableAntiforgery();
 

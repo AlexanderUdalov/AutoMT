@@ -34,3 +34,7 @@ obj/
 *.db
 *.db-shm
 *.db-wal
+
+# Local verification and user-uploaded files
+/.local/
+/Sources/Backend/wwwroot/uploads/

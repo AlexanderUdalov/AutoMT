@@ -4,6 +4,10 @@ on:
   push:
     branches: [ master ]
 
+concurrency:
+  group: automt-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Build & Deploy
@@ -30,6 +34,22 @@ jobs:
       run: |
         mkdir -p Publish/Frontend
         cp -r Sources/Frontend/* Publish/Frontend/
+        printf '{"commit":"%s"}\n' "$GITHUB_SHA" > Publish/Frontend/version.json
+
+    - name: Verify API before deployment
+      run: |
+        cd Sources/Backend
+        ASPNETCORE_URLS=http://127.0.0.1:5297 ConnectionStrings__AutoMT="Data Source=$RUNNER_TEMP/automt-check.db" Logging__LogLevel__Default=Warning ../../Publish/Backend/AutoMT > "$RUNNER_TEMP/automt-check.log" 2>&1 &
+        check_pid=$!
+        trap 'kill "$check_pid" 2>/dev/null || true' EXIT
+        cd ../..
+        ready=false
+        for attempt in 1 2 3 4 5 6 7 8 9 10; do
+          if curl --fail --silent http://127.0.0.1:5297/api/health; then ready=true; break; fi
+          sleep 1
+        done
+        if [ "$ready" != true ]; then cat "$RUNNER_TEMP/automt-check.log"; exit 1; fi
+        node --test Tests/api-smoke.mjs
 
     - name: Upload to VPS via SCP
       uses: appleboy/scp-action@v0.1.3
@@ -47,11 +67,53 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
         script: |
+          set -eu
+          backup="/var/backups/automt/$(date -u +%Y%m%d-%H%M%S)"
+          sudo mkdir -p "$backup/data"
+          rollback() {
+            result=$?
+            if [ "$result" -ne 0 ]; then
+              sudo systemctl stop automt-backend || true
+              if [ -f "$backup/backend.tar" ]; then sudo tar -xf "$backup/backend.tar" -C /var/www/automt/backend; fi
+              if [ -f "$backup/frontend.tar" ]; then sudo tar -xf "$backup/frontend.tar" -C /var/www/automt/frontend; fi
+              sudo systemctl start automt-backend || true
+              sudo systemctl reload nginx || true
+              echo "Deployment failed; previous application files restored. Database retained."
+            fi
+          }
+          trap rollback EXIT
           sudo systemctl stop automt-backend
+          if [ -d /var/www/automt/backend ]; then
+            sudo tar --exclude='*.db' --exclude='*.db-*' --exclude='./wwwroot/uploads' -cf "$backup/backend.tar" -C /var/www/automt/backend .
+          fi
+          if [ -d /var/www/automt/frontend ]; then
+            sudo tar -cf "$backup/frontend.tar" -C /var/www/automt/frontend .
+          fi
+          working_directory=$(sudo systemctl show automt-backend -p WorkingDirectory --value)
+          if [ -n "$working_directory" ]; then
+            for database_file in "$working_directory"/auto_mt.db*; do
+              if [ -f "$database_file" ]; then sudo cp -a "$database_file" "$backup/data/"; fi
+            done
+          fi
           sudo mkdir -p /var/www/automt/backend
           sudo mkdir -p /var/www/automt/frontend
           sudo cp -r /home/${{ secrets.VPS_USER }}/deploy-temp/Publish/Backend/* /var/www/automt/backend/
           sudo cp -r /home/${{ secrets.VPS_USER }}/deploy-temp/Publish/Frontend/* /var/www/automt/frontend/
           sudo chown -R www-data:www-data /var/www/automt/frontend
+          service_user=$(sudo systemctl show automt-backend -p User --value)
+          if [ -n "$service_user" ]; then sudo chown -R "$service_user" /var/www/automt/backend; fi
           sudo systemctl start automt-backend
-          sudo systemctl restart nginx
+          sudo systemctl reload nginx
+          healthy=false
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+            service_pid=$(sudo systemctl show automt-backend -p MainPID --value)
+            service_port=$(sudo ss -ltnpH | awk -v process="pid=$service_pid," 'index($0,process) { address=$4; sub(/^.*:/,"",address); print address; exit }')
+            if [ -n "$service_port" ] && curl --fail --silent --show-error "http://127.0.0.1:$service_port/api/health"; then
+              healthy=true
+              break
+            fi
+            sleep 2
+          done
+          if [ "$healthy" != true ]; then echo "Backend health check failed"; exit 1; fi
+          trap - EXIT
+          echo "Deployment healthy. Backup: $backup"

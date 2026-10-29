@@ -4,9 +4,10 @@ public class MaintenanceHistoryRecordDTO
 {
     public int Id { get; set; }
     public int TypeId { get; set; }
+    public string? TypeName { get; set; }
     public int Mileage { get; set; }
     public bool? IsSkipped { get; set; }
-    public List<MaintenancePartDTO> Parts { get; set; } = default!;
+    public List<MaintenancePartDTO> Parts { get; set; } = new();
 }
 
 public class MaintenanceTypeDTO
@@ -26,6 +27,8 @@ public class MaintenancePartTypeDTO
 
 public class MaintenancePartDTO
 {
+    public int Id { get; set; }
+    public int TypeId { get; set; }
     public string Name { get; set; } = default!;
     public string Article { get; set; } = default!;
     public string Brand { get; set; } = default!;

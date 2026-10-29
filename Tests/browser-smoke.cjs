@@ -1,0 +1,113 @@
+// Requires Playwright and an installed Edge browser. Uses a disposable local database.
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const base = process.env.AUTOMT_TEST_URL || 'http://127.0.0.1:5297';
+
+(async () => {
+  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 1100 }, colorScheme: 'light' });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const username = 'ui_' + Date.now(), password = 'TestPassword!2';
+  let token;
+  async function api(endpoint, method = 'GET', body) {
+    const response = await fetch(base + endpoint, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+    assert.ok(response.ok, `${method} ${endpoint}: ${response.status} ${await (response.ok ? Promise.resolve('') : response.text())}`);
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  }
+  try {
+    await page.goto(base + '/register.html');
+    await page.locator('[name="username"]').fill(username);
+    await page.locator('[name="password"]').fill(password);
+    await page.locator('[name="repeat"]').fill(password);
+    await page.getByRole('button', { name: 'Создать аккаунт', exact: true }).click();
+    await page.getByRole('heading', { name: 'Здесь будет ваш гараж' }).waitFor();
+    token = await page.evaluate(() => localStorage.getItem('token'));
+    await page.locator('[data-action="addcar"]').click();
+    await page.locator('[name="brand"]').fill('Toyota');
+    await page.locator('[name="model"]').fill('RAV4');
+    await page.locator('[name="vin"]').fill('JTMB43FV10D012345');
+    await page.locator('[name="mileage"]').fill('95000');
+    await page.locator('.amt-dialog summary').click();
+    await page.locator('[name="last_5"]').fill('80000');
+    await page.locator('.amt-dialog').getByRole('button', { name: 'Добавить автомобиль', exact: true }).click();
+    await page.getByRole('heading', { name: 'Мой гараж', exact: true }).waitFor();
+    const vehicle = (await api('/api/vehicles'))[0];
+    const id = vehicle.id;
+    await page.locator('[data-action="openplan"]').click();
+    await page.getByRole('heading', { name: 'План обслуживания', exact: true }).waitFor();
+    await page.locator('[data-action="mileage"]:visible').click();
+    await page.locator('[name="mileage"]').fill('97000');
+    await page.locator('.amt-dialog').getByRole('button', { name: 'Обновить пробег', exact: true }).click();
+    await page.locator('.amt-mileage strong').getByText('97 000', { exact: false }).waitFor();
+    await page.locator('[data-action="expand"][data-type="5"]').click();
+    await page.locator('[data-action="complete"][data-type="5"]').click();
+    await page.locator('[data-action="addpart"]').click();
+    await page.locator('[data-key="brand"]').fill('Test Oil');
+    await page.locator('[data-key="article"]').fill('UI-123');
+    await page.getByRole('button', { name: 'Сохранить ТО', exact: true }).click();
+    await page.getByText('Использовано: Test Oil UI-123 (Моторное масло)', { exact: true }).waitFor();
+    await page.reload();
+    await page.locator('[data-action="expand"][data-type="5"]').click();
+    await page.getByText('Использовано: Test Oil UI-123 (Моторное масло)', { exact: true }).waitFor();
+    await page.locator('[data-action="history"]').click();
+    await page.getByRole('heading', { name: 'История обслуживания', exact: true }).waitFor();
+    await page.locator('[data-action="addtype"]').click();
+    await page.locator('[name="typeName"]').fill('Проверка аксессуаров');
+    await page.locator('[name="typePeriod"]').fill('10000');
+    await page.locator('.amt-dialog').getByRole('button', { name: 'Добавить работу', exact: true }).click();
+    await page.locator('.amt-dialog').waitFor({ state: 'hidden' });
+    const custom = (await api(`/api/maintenance/${id}/types`)).find(type => type.name === 'Проверка аксессуаров');
+    assert.ok(custom);
+    await page.locator(`[data-action="expand"][data-type="${custom.id}"]`).click();
+    await page.locator(`[data-action="skip"][data-type="${custom.id}"]`).click();
+    await page.getByRole('button', { name: 'Пропустить', exact: true }).click();
+    await page.locator(`[data-action="removetype"][data-type="${custom.id}"]`).click();
+    await page.locator('.amt-dialog').getByRole('button', { name: 'Удалить из плана', exact: true }).click();
+    await page.locator('.amt-dialog').waitFor({ state: 'hidden' });
+    assert.ok((await api(`/api/maintenance/${id}?fullHistory=true`)).some(record => record.typeId === custom.id && record.isSkipped));
+    await page.locator('[data-action="cartab"][data-tab="notes"]').click();
+    await page.locator('[data-action="addnote"]').first().click();
+    await page.locator('[name="notetitle"]').fill('Планы для машины');
+    await page.locator('[name="notekind"]').selectOption('checklist');
+    await page.locator('[name="notebody"]').fill('CarPlay\nОрганайзер\nКоврики\nБагажник\nПолировка\nЧехлы');
+    await page.getByRole('button', { name: 'Сохранить заметку', exact: true }).click();
+    await page.getByRole('heading', { name: 'Планы для машины', exact: true }).waitFor();
+    await page.locator('[data-note-check]').first().check();
+    await page.getByText('Готово 1 из 6', { exact: true }).waitFor();
+    await page.reload();
+    await page.getByText('Готово 1 из 6', { exact: true }).waitFor();
+    await api(`/api/vehicles/${id}/notes`, 'POST', { kind: 'text', title: 'Доделать', body: 'Проверить скол на капоте.\nПодобрать аксессуары.', items: [] });
+    await api(`/api/vehicles/${id}/notes`, 'POST', { kind: 'link', title: 'Полезная ссылка', body: 'Инструкция', url: 'https://example.com/manual', items: [] });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.reload();
+    await page.getByRole('heading', { name: 'Планы для машины', exact: true }).waitFor();
+    const first = await page.locator('#amt-live').evaluate(el => el.querySelector('.amt-note').getBoundingClientRect().top);
+    assert.ok(first < 270, 'Mobile header too tall: ' + first);
+    await page.locator('.amt-content').evaluate(el => el.scrollTop = 180);
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('#amt-live').getAttribute('data-scrolled'), 'true');
+    assert.ok(await page.locator('.amt-mobilecontext').evaluate(el => el.getBoundingClientRect().top) < 3);
+    if (process.env.AUTOMT_SCREENSHOT_DIR) await page.screenshot({ path: path.join(process.env.AUTOMT_SCREENSHOT_DIR, 'production-mobile.png') });
+    await page.locator('.amt-bottomnav [data-page="garage"]').click();
+    await page.getByRole('heading', { name: 'Мой гараж', exact: true }).waitFor();
+    for (const width of [320, 390, 736, 1280]) {
+      await page.setViewportSize({ width, height: 1000 }); await page.waitForTimeout(100);
+      const size = await page.locator('#amt-live').evaluate(el => ({ width: el.clientWidth, scroll: el.scrollWidth }));
+      assert.equal(size.scroll, size.width, 'Horizontal overflow at ' + width);
+    }
+    if (process.env.AUTOMT_SCREENSHOT_DIR) await page.screenshot({ path: path.join(process.env.AUTOMT_SCREENSHOT_DIR, 'production-desktop.png') });
+    await page.locator('.amt-nav [data-page="account"]').click();
+    await page.locator('[name="username"]').fill(username + '_updated');
+    await page.getByRole('button', { name: 'Сохранить имя', exact: true }).click();
+    await page.locator('.amt-user').getByText(username + '_updated', { exact: true }).waitFor();
+    assert.deepEqual(errors, []);
+    console.log('Browser checks passed: registration, vehicle, mileage, parts after reload, notes after reload, mobile collapse, responsive garage, account.');
+  } finally {
+    if (token) await api('/api/auth/delete', 'DELETE');
+    await browser.close();
+  }
+})().catch(error => { console.error(error); process.exit(1); });

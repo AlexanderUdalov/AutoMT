@@ -7,6 +7,7 @@ using AutoMT.Data;
 using AutoMT.Services;
 using AutoMT.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.FileProviders;
 
 var jwtKey = "super_secret_jwt_key_123";
 var key = Encoding.ASCII.GetBytes(jwtKey);
@@ -24,7 +25,8 @@ builder.Services.AddCors(options =>
            .AllowAnyHeader();
    });
 });
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=auto_mt.db"));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(
+    builder.Configuration.GetConnectionString("AutoMT") ?? "Data Source=auto_mt.db"));
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<PasswordHasher<string>>();
 builder.Services.AddSingleton(new JwtService(jwtKey));
@@ -52,7 +54,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    SchemaUpdates.Apply(db);
     if (!db.CustomTypes.Any())
     {
         db.Database.ExecuteSqlRaw(
@@ -65,8 +67,23 @@ app.UseCors("AllowAll");
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseStaticFiles();
+Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "wwwroot"));
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "wwwroot"))
+});
+var frontendPath = new[] { "../Frontend", "../frontend" }
+    .Select(path => Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, path)))
+    .FirstOrDefault(Directory.Exists);
+if (frontendPath != null)
+{
+    var frontendFiles = new PhysicalFileProvider(frontendPath);
+    app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = frontendFiles });
+    app.UseStaticFiles(new StaticFileOptions { FileProvider = frontendFiles });
+}
 app.MapAuthEndpoints();
 app.MapVehiclesEndpoints();
 app.MapMaintenanceEndpoints();
+app.MapNotesEndpoints();
+app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.Run();
