@@ -18,6 +18,7 @@ public class Vehicle
 
     public bool IsDefault { get; set; }
     public string? ImageUrl { get; set; } = default!;
+    public List<VehiclePhoto> Photos { get; set; } = new();
 
     public bool DisableNotify { get; set; } = true;
 }

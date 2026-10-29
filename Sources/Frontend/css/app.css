@@ -162,7 +162,7 @@
 #automt-app .amt-app[data-layout="journal"] .amt-workicon svg { width:15px; height:15px; }
 #automt-app .amt-app[data-layout="journal"] .amt-chevron,#automt-app .amt-app[data-layout="journal"] .amt-meter { display:none; }
 #automt-app .amt-app[data-layout="journal"] .amt-details { padding:0 0 18px 39px; }
-@container amt (max-width:740px) {
+@media (max-width:740px) {
  #automt-app .amt-shell { grid-template-columns:150px minmax(0,1fr); }
  #automt-app .amt-content { padding:22px 18px; }
  #automt-app .amt-topbar { padding:16px 18px; }
@@ -174,7 +174,7 @@
  #automt-app .amt-caricon { display:none; }
  #automt-app .amt-app[data-layout="journal"] .amt-worklayout { grid-template-columns:195px minmax(0,1fr); gap:18px; }
 }
-@container amt (max-width:580px) {
+@media (max-width:580px) {
  #automt-app .amt-app { border-radius:18px; min-height:860px; }
  #automt-app .amt-shell { display:block; min-height:860px; }
  #automt-app .amt-side { display:none!important; }

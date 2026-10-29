@@ -29,6 +29,23 @@ test('garage, notes isolation, parts, history, skipping and custom regulations p
     }, 201);
     const id = vehicle.id;
     assert.equal(vehicle.isDefault, true);
+    async function upload(token, filename = 'car.png', expected = 200) {
+      const body = new FormData();
+      body.append('image', new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64')], { type: 'image/png' }), filename);
+      const response = await fetch(`${base}/api/vehicles/upload/${id}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body });
+      assert.equal(response.status, expected);
+    }
+    await upload(other.token, 'car.png', 404);
+    await upload(owner.token, 'car.html', 400);
+    await upload(owner.token);
+    const firstPhoto = (await api(`/api/vehicles/${id}`, owner.token)).imageUrl;
+    await upload(owner.token);
+    const withPhotos = await api(`/api/vehicles/${id}`, owner.token);
+    assert.equal(withPhotos.photos.length, 2);
+    assert.ok(withPhotos.photos.some(photo => photo.url === firstPhoto), 'Uploading a photo must retain the previous one');
+    assert.ok(withPhotos.photos.some(photo => photo.url === withPhotos.imageUrl));
+    assert.equal((await api('/api/vehicles', owner.token))[0].photos.length, 2);
+    assert.equal((await fetch(base + firstPhoto)).status, 200);
     await api(`/api/vehicles/${id}`, other.token, 'GET', undefined, 404);
     await api(`/api/vehicles/${id}/notes`, null, 'GET', undefined, 401);
     const note = await api(`/api/vehicles/${id}/notes`, owner.token, 'POST', {

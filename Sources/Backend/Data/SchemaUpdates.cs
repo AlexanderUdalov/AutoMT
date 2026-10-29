@@ -22,6 +22,21 @@ public static class SchemaUpdates
                     FOREIGN KEY (VehicleId) REFERENCES Vehicles (Id) ON DELETE CASCADE
             );
             CREATE INDEX IF NOT EXISTS IX_VehicleNotes_VehicleId ON VehicleNotes (VehicleId);
+            CREATE TABLE IF NOT EXISTS VehiclePhotos (
+                Id INTEGER NOT NULL CONSTRAINT PK_VehiclePhotos PRIMARY KEY AUTOINCREMENT,
+                VehicleId INTEGER NOT NULL,
+                Url TEXT NOT NULL,
+                CONSTRAINT FK_VehiclePhotos_Vehicles_VehicleId
+                    FOREIGN KEY (VehicleId) REFERENCES Vehicles (Id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS IX_VehiclePhotos_VehicleId ON VehiclePhotos (VehicleId);
+            INSERT INTO VehiclePhotos (VehicleId, Url)
+                SELECT Id, ImageUrl FROM Vehicles
+                WHERE ImageUrl IS NOT NULL AND ImageUrl != ''
+                AND NOT EXISTS (
+                    SELECT 1 FROM VehiclePhotos
+                    WHERE VehicleId = Vehicles.Id AND Url = Vehicles.ImageUrl
+                );
         ");
     }
 }

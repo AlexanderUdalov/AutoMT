@@ -18,6 +18,7 @@ namespace AutoMT.Controllers
                 if (userId is null) return Results.Unauthorized();
 
                 var vehicles = await db.Vehicles
+                    .Include(v => v.Photos)
                     .Where(v => v.UserId == userId)
                     .OrderByDescending(x => x.IsDefault)
                     .ToListAsync();
@@ -30,7 +31,7 @@ namespace AutoMT.Controllers
                 var userId = userCtx.GetUserId(ctx);
                 if (userId is null) return Results.Unauthorized();
 
-                var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.UserId == userId.Value && v.Id == vehicleId);
+                var vehicle = await db.Vehicles.Include(v => v.Photos).FirstOrDefaultAsync(v => v.UserId == userId.Value && v.Id == vehicleId);
                 if (vehicle is null) return Results.NotFound();
 
                 return Results.Ok(vehicle);
@@ -95,7 +96,6 @@ namespace AutoMT.Controllers
 
             app.MapPost("/api/vehicles/upload/{id}", async (int id, [FromForm] IFormFile image, AppDbContext db, HttpContext ctx, IUserContext userCtx) =>
             {
-                Console.WriteLine("Content-Type: " + ctx.Request.ContentType);
                 var userId = userCtx.GetUserId(ctx);
                 if (userId is null) return Results.Unauthorized();
 
@@ -119,6 +119,7 @@ namespace AutoMT.Controllers
 
 
                 vehicle.ImageUrl = $"/uploads/vehicles/{id}/{fileName}";
+                db.VehiclePhotos.Add(new VehiclePhoto { VehicleId = id, Url = vehicle.ImageUrl });
                 await db.SaveChangesAsync();
 
                 return Results.Ok();

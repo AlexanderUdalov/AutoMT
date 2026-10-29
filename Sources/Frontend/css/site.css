@@ -2,7 +2,7 @@ html { color-scheme: light dark; }
 body { margin: 0; background: light-dark(#f4f5f7, #12151a); }
 button, select, summary, .amt-interactive { cursor: pointer; }
 button:disabled { cursor: wait; }
-#automt-app { container-type: inline-size; container-name: amt; width: 100%; }
+#automt-app { width: 100%; }
 #automt-app .amt-app { border: 0; border-radius: 0; min-height: 100dvh; }
 #automt-app .amt-shell { grid-template-columns: 216px minmax(0, 1fr); min-height: 100dvh; }
 #automt-app .amt-side { position: sticky; top: 0; height: 100dvh; }
@@ -27,23 +27,54 @@ button:disabled { cursor: wait; }
 #automt-app .amt-historyrow { display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--a-line); }
 #automt-app .amt-historyrow h3 { font-size: 13px; }
 #automt-app .amt-historyrow svg { color: var(--a-muted); margin-top: 2px; }
-@container amt (max-width: 740px) {
+@media (max-width: 740px) {
   #automt-app .amt-shell { grid-template-columns: 150px minmax(0, 1fr); }
   #automt-app .amt-content { padding: 22px 18px; }
 }
-@container amt (max-width: 580px) {
-  #automt-app .amt-app { height: 100dvh; min-height: 0; overflow: hidden; }
+@media (max-width: 580px) {
+  #automt-app .amt-app { height: 100%; min-height: 0; overflow: hidden; }
   #automt-app .amt-shell { display: block; height: 100%; min-height: 0; }
-  #automt-app .amt-main { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+  #automt-app .amt-main { height: 100%; min-height: 0; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
   #automt-app .amt-content { overflow-y: auto; overscroll-behavior: contain; min-height: 0; flex: 1; padding: 0 17px 20px; scrollbar-width: thin; }
   #automt-app .amt-topbar { flex-shrink: 0; max-height: 72px; overflow: hidden; transition: max-height .18s, padding .18s, opacity .18s; }
   #automt-app .amt-app[data-scrolled="true"] .amt-topbar { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; }
   #automt-app .amt-bottomnav { flex-shrink: 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
-  #automt-app .amt-overlay { padding: 12px; align-items: flex-end; }
-  #automt-app .amt-dialog { max-height: calc(100dvh - 24px); padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  #automt-app .amt-overlay { top: var(--amt-viewport-top, 0px); bottom: auto; height: var(--amt-viewport-height, 100dvh); padding: 12px; align-items: flex-end; }
+  #automt-app .amt-dialog { max-height: calc(var(--amt-viewport-height, 100dvh) - 24px); padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  #automt-app .amt-auth { display: flex; flex-direction: column; align-items: center; height: 100%; min-height: 0; overflow-y: auto; }
+  #automt-app .amt-authbox { flex-shrink: 0; margin-block: auto; }
   #automt-app .amt-authbox { padding: 24px; }
   #automt-app .amt-toast { top: 10px; }
 }
+
+@media (max-width: 580px) {
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  #automt-app { position: fixed; top: var(--amt-viewport-top, 0px); left: 0; height: var(--amt-viewport-height, 100dvh); }
+}
+
+#automt-app .amt-garagevisual.amt-hasphotos { display: block; padding: 0; min-height: 0; background: var(--a-paper); }
+#automt-app .amt-garagevisual .amt-photoopen { display: block; position: relative; width: 100%; aspect-ratio: 16 / 9; padding: 0; border: 0; border-radius: 0; overflow: hidden; background: var(--a-soft); cursor: zoom-in; }
+#automt-app .amt-photoopen img { display: block; position: static; width: 100%; height: 100%; object-fit: cover; }
+#automt-app .amt-photoopen::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 62%, var(--a-paper) 100%); pointer-events: none; }
+#automt-app .amt-photocount { position: absolute; right: 14px; bottom: 36px; z-index: 1; display: flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 8px; background: #10151ab3; color: #fff; font-size: 11px; }
+#automt-app .amt-hasphotos .amt-photoupload { position: absolute; left: 14px; top: 14px; z-index: 2; min-width: 44px; }
+#automt-app .amt-primarybadge { position: relative; z-index: 2; }
+#automt-app .amt-hasphotos .amt-primarybadge { position: absolute; right: 14px; top: 14px; }
+#automt-app .amt-hasphotos + .amt-garagebody { padding-top: 4px; }
+#automt-app .amt-photooverlay { padding: 0; background: #0c1017; top: var(--amt-viewport-top, 0px); bottom: auto; height: var(--amt-viewport-height, 100dvh); }
+#automt-app .amt-dialog.amt-gallery { display: flex; flex-direction: column; width: 100%; max-width: none; height: 100%; max-height: none; padding: 0; border: 0; border-radius: 0; overflow: hidden; background: #0c1017; color: #fff; box-shadow: none; }
+#automt-app .amt-galleryhead { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: max(16px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 12px max(18px, env(safe-area-inset-left)); flex-shrink: 0; }
+#automt-app .amt-galleryhead h2 { font-size: 18px; }
+#automt-app .amt-gallerycounter { margin-top: 4px; color: #b9c0cb; font-size: 12px; }
+#automt-app .amt-gallery .amt-plain { color: #fff; min-width: 44px; min-height: 44px; border-radius: 12px; }
+#automt-app .amt-gallery .amt-plain:hover { background: #ffffff18; }
+#automt-app .amt-phototrack { display: flex; flex: 1; min-height: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; touch-action: pan-x pinch-zoom; }
+#automt-app .amt-phototrack::-webkit-scrollbar { display: none; }
+#automt-app .amt-photoslide { flex: 0 0 100%; min-width: 0; height: 100%; scroll-snap-align: center; scroll-snap-stop: always; }
+#automt-app .amt-photoslide img { display: block; width: 100%; height: 100%; object-fit: contain; }
+#automt-app .amt-galleryfooter { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 12px max(18px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)); flex-shrink: 0; color: #b9c0cb; font-size: 12px; }
+#automt-app .amt-galleryadd { gap: 6px; }
+#automt-app :is(.amt-photoopen, .amt-gallery button, .amt-phototrack):focus-visible { outline: 3px solid var(--a-accent); outline-offset: -3px; }
 @media (prefers-reduced-motion: reduce) {
   #automt-app .amt-topbar { transition: none; }
 }

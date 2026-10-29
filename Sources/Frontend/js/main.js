@@ -1,4 +1,5 @@
 import { createViews } from './views.js';
+import './viewport.js';
 
 const root = document.getElementById('automt-app');
 const app = document.getElementById('amt-live');
@@ -13,6 +14,8 @@ let types = [];
 let views = createViews(types);
 let toastTimer;
 let savedFocus;
+const scrollPositions = new Map();
+history.scrollRestoration = 'manual';
 
 function icons() { globalThis.lucide?.createIcons({ attrs: { width: 18, height: 18 } }); }
 window.addEventListener('load', icons);
@@ -40,7 +43,9 @@ async function request(path, { method = 'GET', body, authenticated = true } = {}
 
 function mapVehicle(vehicle) {
   const existing = state.cars.find(car => car.id === vehicle.id);
-  return { ...vehicle, primary: vehicle.isDefault, image: vehicle.imageUrl,
+  const photos = [...(vehicle.photos || [])].sort((a, b) => b.id - a.id);
+  if (vehicle.imageUrl && !photos.some(photo => photo.url === vehicle.imageUrl)) photos.unshift({ url: vehicle.imageUrl });
+  return { ...vehicle, primary: vehicle.isDefault, image: vehicle.imageUrl, photos,
     notes: existing?.notes || [], works: existing?.works || [], loaded: existing?.loaded || false };
 }
 function mapType(type, isSystem = false) {
@@ -88,19 +93,24 @@ function writeRoute() {
 function render() {
   const focusedNote = document.activeElement?.dataset.noteCheck, focusedItem = document.activeElement?.dataset.item;
   const viewKey = `${state.page}:${state.car}:${state.carTab}`;
-  const previous = state.viewKey === viewKey ? app.querySelector('.amt-content')?.scrollTop || 0 : 0;
+  if (state.viewKey) scrollPositions.set(state.viewKey, app.querySelector('.amt-content')?.scrollTop || 0);
+  const previous = scrollPositions.get(viewKey) || 0;
   state.viewKey = viewKey;
   if (state.modal && !savedFocus) savedFocus = document.activeElement;
-  app.innerHTML = `<div class="amt-shell"><aside class="amt-side">${views.brand()}${nav('amt-nav')}<div class="amt-sidefoot"><strong>Меньше забот о машине.</strong>Больше уверенности в пути.</div></aside><div class="amt-main"><header class="amt-topbar">${views.brand(true)}<span class="amt-breadcrumb">Мой гараж <span style="padding:0 7px">/</span> ${state.page === 'plan' ? 'Обслуживание' : state.page === 'garage' ? 'Автомобили' : 'Аккаунт'}</span><button class="amt-user" data-action="page" data-page="account"><span>${esc(state.username)}</span><span class="amt-avatar">${esc(state.username.slice(0, 1).toUpperCase())}</span></button></header><main class="amt-content">${state.page === 'plan' ? views.plan(state) : state.page === 'garage' ? views.garage(state) : views.account(state)}</main>${nav('amt-bottomnav')}</div></div>${state.modal ? views.dialog(state) : ''}${state.toast ? `<div class="amt-toast" role="status">${icon('circle-check')}${esc(state.toast)}</div>` : ''}<input type="file" data-photo accept="image/jpeg,image/png,image/webp,image/gif" hidden aria-label="Фотография автомобиля">`;
+  app.innerHTML = `<div class="amt-shell"><aside class="amt-side">${views.brand()}${nav('amt-nav')}<div class="amt-sidefoot"><strong>Меньше забот о машине.</strong>Больше уверенности в пути.</div></aside><div class="amt-main"><header class="amt-topbar">${views.brand(true)}<span class="amt-breadcrumb">Мой гараж <span style="padding:0 7px">/</span> ${state.page === 'plan' ? 'Обслуживание' : state.page === 'garage' ? 'Автомобили' : 'Аккаунт'}</span><button class="amt-user" data-action="page" data-page="account"><span>${esc(state.username)}</span><span class="amt-avatar">${esc(state.username.slice(0, 1).toUpperCase())}</span></button></header><main class="amt-content">${state.page === 'plan' ? views.plan(state) : state.page === 'garage' ? views.garage(state) : views.account(state)}</main>${nav('amt-bottomnav')}</div></div>${state.modal ? views.dialog(state) : ''}${state.toast ? `<div class="amt-toast" role="status">${icon('circle-check')}${esc(state.toast)}</div>` : ''}<input type="file" data-photo accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden aria-label="Фотографии автомобиля">`;
   if (state.modal?.kind === 'complete') renderParts();
   app.dataset.scrolled = previous > 70 ? 'true' : 'false';
   app.querySelector('.amt-content').scrollTop = previous;
   app.querySelector('.amt-shell').inert = Boolean(state.modal);
+  if (state.modal?.kind === 'photos') {
+    const track = app.querySelector('[data-photo-track]');
+    track.scrollLeft = state.modal.index * track.clientWidth;
+  }
   icons();
   if (state.modal) requestAnimationFrame(() => app.querySelector('.amt-dialog input,.amt-dialog select,.amt-dialog button')?.focus({ preventScroll: true }));
   else if (savedFocus) {
     const action = savedFocus.dataset?.action;
-    if (action) [...app.querySelectorAll(`[data-action="${action}"]`)].find(element => element.getClientRects().length)?.focus({ preventScroll: true });
+    if (action) [...app.querySelectorAll(`[data-action="${action}"]`)].find(element => element.getClientRects().length && (!savedFocus.dataset.car || element.dataset.car === savedFocus.dataset.car))?.focus({ preventScroll: true });
     savedFocus = null;
   }
   if (focusedNote && !state.modal) app.querySelector(`[data-note-check="${focusedNote}"][data-item="${focusedItem}"]`)?.focus({ preventScroll: true });
@@ -141,7 +151,22 @@ function noteFields() {
   return `${modal.noteKind === 'link' ? `<label class="amt-label" for="note-url">Ссылка</label><input class="amt-input" id="note-url" name="url" type="url" value="${esc(draft.url)}" required placeholder="https://…">` : ''}<label class="amt-label" for="note-body">${modal.noteKind === 'checklist' ? 'Пункты списка' : modal.noteKind === 'link' ? 'Описание' : 'Текст заметки'}</label><textarea class="amt-input amt-note-editor" id="note-body" name="notebody" maxlength="2000" ${modal.noteKind !== 'link' ? 'required' : ''}>${esc(draft.body)}</textarea>${modal.noteKind === 'checklist' ? '<p class="amt-formhelp">Каждая строка станет отдельным пунктом с галочкой.</p>' : ''}`;
 }
 
+function movePhoto(step) {
+  if (state.modal?.kind !== 'photos') return;
+  const photos = state.cars.find(car => car.id === state.modal.car)?.photos || [];
+  const track = app.querySelector('[data-photo-track]');
+  if (!photos.length || !track) return;
+  const next = (state.modal.index + step + photos.length) % photos.length;
+  track.scrollTo({ left: next * track.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+}
+
 app.addEventListener('scroll', event => {
+  if (event.target.matches('[data-photo-track]') && state.modal?.kind === 'photos') {
+    state.modal.index = Math.round(event.target.scrollLeft / event.target.clientWidth);
+    const photos = state.cars.find(car => car.id === state.modal.car).photos;
+    app.querySelector('[data-photo-counter]').textContent = `${state.modal.index + 1} / ${photos.length}`;
+    return;
+  }
   if (!event.target.matches('.amt-content')) return;
   if (event.target.scrollTop > 70) app.dataset.scrolled = 'true';
   else if (event.target.scrollTop < 20) app.dataset.scrolled = 'false';
@@ -188,6 +213,10 @@ app.addEventListener('click', event => {
     if (action === 'addpart') { const next = types.find(type => type.id === state.modal.type).parts.find(name => !state.parts.some(part => part.type === name)); if (next) state.parts.push({ type: next, brand: '', article: '' }); renderParts(); return; }
     if (action === 'removepart') { state.parts.splice(Number(button.dataset.index), 1); renderParts(); return; }
     if (action === 'photo') { state.photoCar = id; app.querySelector('[data-photo]').click(); return; }
+    if (action === 'viewphotos') state.modal = { kind: 'photos', car: id, index: 0 };
+    if (action === 'photoprev' || action === 'photonext') { movePhoto(action === 'photonext' ? 1 : -1); return; }
+    // Safari does not focus buttons on tap; remember the actual dialog opener.
+    if (state.modal && !savedFocus) savedFocus = button;
     render();
   });
 });
@@ -211,21 +240,39 @@ app.addEventListener('change', event => {
       try { const saved = await request(`/api/vehicles/${car.id}/notes/${note.id}`, { method: 'PUT', body: { ...note, items } }); car.notes = car.notes.map(item => item.id === note.id ? saved : item); render(); }
       catch (error) { element.checked = !element.checked; throw error; }
     }
-    if (element.matches('[data-photo]') && element.files[0]) {
-      const file = element.files[0]; if (file.size > 10 * 1024 * 1024) throw new Error('Изображение должно быть меньше 10 МБ.');
-      const body = new FormData(); body.append('image', file);
-      await request(`/api/vehicles/upload/${state.photoCar}`, { method: 'POST', body }); await loadVehicles(); toast('Фотография обновлена');
+    if (element.matches('[data-photo]') && element.files.length) {
+      const files = [...element.files];
+      element.value = '';
+      if (files.some(file => file.size > 10 * 1024 * 1024)) throw new Error('Каждое изображение должно быть меньше 10 МБ.');
+      if (files.some(file => !/\.(jpe?g|png|webp|gif)$/i.test(file.name))) throw new Error('Выберите фотографии в формате JPEG, PNG, WebP или GIF.');
+      let uploaded = 0;
+      try {
+        for (const file of files) {
+          const body = new FormData(); body.append('image', file);
+          await request(`/api/vehicles/upload/${state.photoCar}`, { method: 'POST', body });
+          uploaded++;
+        }
+      } finally {
+        await loadVehicles();
+        if (state.modal?.kind === 'photos') state.modal.index = 0;
+        render();
+      }
+      toast(uploaded === 1 ? 'Фотография добавлена' : `Добавлено фото: ${uploaded}`);
     }
   });
 });
 app.addEventListener('input', event => { const element = event.target; if (element.dataset.key) state.parts[Number(element.dataset.part)][element.dataset.key] = element.value; });
-app.addEventListener('keydown', event => {
+// Safari may return focus to the body after tapping a gallery button.
+document.addEventListener('keydown', event => {
+  if (state.modal?.kind === 'photos' && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
+    event.preventDefault(); movePhoto(event.key === 'ArrowRight' ? 1 : -1); return;
+  }
   if (event.key === 'Enter' && event.target.matches('input:not([type="checkbox"])')) {
     const form = event.target.closest('form'); if (form) { event.preventDefault(); if (form.reportValidity()) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); }
   }
   if (event.key === 'Escape' && state.modal && !state.busy) { state.modal = null; render(); }
   if (event.key === 'Tab' && state.modal) {
-    const items = [...app.querySelectorAll('.amt-dialog button:not(:disabled),.amt-dialog input:not(:disabled),.amt-dialog textarea,.amt-dialog select,.amt-dialog summary')];
+    const items = [...app.querySelectorAll('.amt-dialog button:not(:disabled),.amt-dialog input:not(:disabled),.amt-dialog textarea,.amt-dialog select,.amt-dialog summary,.amt-dialog [tabindex="0"]')];
     if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1)?.focus(); }
     else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0]?.focus(); }
   }

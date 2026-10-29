@@ -1,4 +1,4 @@
-"""Verify the additive notes table upgrade without touching a user's database."""
+"""Verify additive notes/photos upgrades and preservation of existing data."""
 import json
 from contextlib import closing
 import os
@@ -44,6 +44,7 @@ with tempfile.TemporaryDirectory(prefix="automt-schema-") as directory:
     process.wait(timeout=10)
     with closing(sqlite3.connect(database)) as db:
         db.execute("DROP TABLE VehicleNotes")
+        db.execute("DROP TABLE VehiclePhotos")
         db.execute("INSERT INTO Users (Id, Name, PasswordHash) VALUES (999, 'existing-user', 'unchanged-hash')")
         db.execute("""INSERT INTO Vehicles (Id, UserId, VIN, Brand, Model, Year, Mileage,
                    LastMileageUpdate, IsDefault, DisableNotify)
@@ -51,6 +52,7 @@ with tempfile.TemporaryDirectory(prefix="automt-schema-") as directory:
                    '2026-01-01 00:00:00',1,0)""")
         db.execute("INSERT INTO VehicleMaintenanceTypes (VehicleId,TypeId) VALUES (999,5)")
         db.execute("INSERT INTO Maintenances (VehicleId,TypeId,Mileage,IsSkipped) VALUES (999,5,80000,0)")
+        db.execute("UPDATE Vehicles SET ImageUrl='/uploads/vehicles/999/existing.jpg' WHERE Id=999")
         before = list(db.execute("SELECT * FROM Vehicles")), list(db.execute("SELECT * FROM Maintenances"))
         db.commit()
     process = start()
@@ -60,7 +62,15 @@ with tempfile.TemporaryDirectory(prefix="automt-schema-") as directory:
             assert before == after, "Existing vehicles or maintenance were changed"
             assert db.execute("SELECT PasswordHash FROM Users WHERE Id=999").fetchone()[0] == "unchanged-hash"
             assert db.execute("SELECT count(*) FROM VehicleNotes").fetchone()[0] == 0
-        print("Schema upgrade passed: existing account, vehicle and maintenance unchanged; notes table added.")
+            assert db.execute("SELECT VehicleId, Url FROM VehiclePhotos").fetchall() == [(999, '/uploads/vehicles/999/existing.jpg')]
+    finally:
+        process.terminate()
+        process.wait(timeout=10)
+    process = start()
+    try:
+        with closing(sqlite3.connect(database)) as db:
+            assert db.execute("SELECT count(*) FROM VehiclePhotos").fetchone()[0] == 1, "Restart duplicated the legacy photo"
+        print("Schema upgrade passed: account, vehicle, maintenance and legacy photo preserved; repeated startup adds no duplicates.")
     finally:
         process.terminate()
         process.wait(timeout=10)
