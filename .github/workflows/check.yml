@@ -1,0 +1,40 @@
+name: Check
+'on':
+- push
+- pull_request
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - run: dotnet publish Sources/Backend/AutoMT.csproj -c Release -r linux-x64 --self-contained true -o .release/backend
+    - run: 'mkdir -p .release/frontend
+
+        cp -r Sources/Frontend/. .release/frontend/'
+    - name: API smoke with isolated database
+      shell: bash
+      run: "set -euo pipefail\ncd .release/backend\nASPNETCORE_URLS=http://127.0.0.1:5297 ConnectionStrings__AutoMT=\"Data\
+        \ Source=$RUNNER_TEMP/automt-check.db\" ./AutoMT > \"$RUNNER_TEMP/automt-check.log\" 2>&1 &\npid=$!\ntrap 'kill \"\
+        $pid\" 2>/dev/null || true' EXIT\ncd ../..\nfor i in $(seq 1 30); do\n  if curl --fail --silent http://127.0.0.1:5297/api/health;\
+        \ then break; fi\n  sleep 1\ndone\nnode --test Tests/api-smoke.mjs"
+    - name: Package exact source revision
+      shell: bash
+      run: 'set -euo pipefail
+
+        revision=$(git rev-parse HEAD)
+
+        echo "RELEASE_SHA=$revision" >> "$GITHUB_ENV"
+
+        python scripts/package_release.py --project automt --sha "$revision" --backend .release/backend --frontend .release/frontend
+        --output release.tar.gz'

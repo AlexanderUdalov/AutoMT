@@ -38,3 +38,7 @@ obj/
 # Local verification and user-uploaded files
 /.local/
 /Sources/Backend/wwwroot/uploads/
+
+# Code-only deployment artifacts
+.release/
+release.tar.gz
