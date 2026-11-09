@@ -1,9 +1,9 @@
 // Start AutoMT with a disposable database before running this test.
-// node --test Tests/api-smoke.mjs (AUTOMT_TEST_URL defaults to localhost:5297)
+// node --test Tests/api-smoke.mjs (AUTOMT_TEST_URL defaults to localhost:4107)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const base = process.env.AUTOMT_TEST_URL || 'http://127.0.0.1:5297';
+const base = process.env.AUTOMT_TEST_URL || 'http://127.0.0.1:4107';
 async function api(path, token, method = 'GET', body, expected = 200) {
   const headers = {};
   if (token) headers.Authorization = `Bearer ${token}`;

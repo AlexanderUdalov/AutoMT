@@ -28,3 +28,7 @@ journalctl -u site-automt.service -n 50 --no-pager. Полные журналы 
 Копии: /var/lib/portfolio-deploy/automt/backups. Последние копии видны в operation=status.
 Receiver и права устанавливаются bootstrap из personal-infra/deploy/.
 Восстановление БД — отдельная административная операция после остановки сервиса.
+
+## Локальная разработка
+
+Dev-порты: app 4100 / isolated API tests 4107. Production-порты не менялись. Vite использует strictPort.

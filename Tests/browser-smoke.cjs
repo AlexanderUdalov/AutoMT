@@ -2,7 +2,7 @@
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const path = require('node:path');
 const assert = require('node:assert/strict');
-const base = process.env.AUTOMT_TEST_URL || 'http://127.0.0.1:5297';
+const base = process.env.AUTOMT_TEST_URL || 'http://127.0.0.1:4107';
 
 (async () => {
   const browser = await chromium.launch({ channel: 'msedge', headless: true });

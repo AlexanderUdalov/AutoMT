@@ -10,4 +10,4 @@ GitHub Variables распространяются командой python script
 Не добавлять env, базы, uploads, backups, локальные данные и ключи в Git или release.tar.gz.
 Не редактировать server environment при обычном релизе. Откат кода не восстанавливает БД автоматически.
 Общие scripts/deploy_client.py и scripts/package_release.py синхронизировать с personal-infra/deploy/.
-Перенос локальных портов — отдельная задача; local_reserved ещё не означает выполненный перенос.
+Локальные порты перенесены: см. OPERATIONS.md и personal-infra/projects.json. Не возвращать старые defaults и не отключать Vite strictPort.

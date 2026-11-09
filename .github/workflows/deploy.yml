@@ -49,9 +49,9 @@ jobs:
       if: ${{ inputs.operation == 'deploy' || inputs.operation == 'verify' }}
     - name: API smoke with isolated database
       shell: bash
-      run: "set -euo pipefail\ncd .release/backend\nASPNETCORE_URLS=http://127.0.0.1:5297 ConnectionStrings__AutoMT=\"Data\
+      run: "set -euo pipefail\ncd .release/backend\nASPNETCORE_URLS=http://127.0.0.1:4107 ConnectionStrings__AutoMT=\"Data\
         \ Source=$RUNNER_TEMP/automt-check.db\" ./AutoMT > \"$RUNNER_TEMP/automt-check.log\" 2>&1 &\npid=$!\ntrap 'kill \"\
-        $pid\" 2>/dev/null || true' EXIT\ncd ../..\nfor i in $(seq 1 30); do\n  if curl --fail --silent http://127.0.0.1:5297/api/health;\
+        $pid\" 2>/dev/null || true' EXIT\ncd ../..\nfor i in $(seq 1 30); do\n  if curl --fail --silent http://127.0.0.1:4107/api/health;\
         \ then break; fi\n  sleep 1\ndone\nnode --test Tests/api-smoke.mjs"
       if: ${{ inputs.operation == 'deploy' || inputs.operation == 'verify' }}
     - name: Package exact source revision

@@ -2,7 +2,7 @@
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { chromium, webkit } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const base = process.env.AUTOMT_TEST_URL || 'http://127.0.0.1:5297';
+const base = process.env.AUTOMT_TEST_URL || 'http://127.0.0.1:4107';
 
 (async () => {
   const engine = process.env.AUTOMT_BROWSER || 'chromium';
